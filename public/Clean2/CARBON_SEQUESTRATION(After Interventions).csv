@@ -1,0 +1,7 @@
+CARBON_SEQUESTRATION(After Interventions),,,,
+Type,Intervention,Area Added (ha),Sequestration Factor,Annual CO2 Sequestration (kg)
+Forestry,Afforestation (10 ha),10,900,9000
+Agroforestry,Tree Plantation (15 ha),15,750,11250
+Soil Carbon,Organic Farming (20 ha),20,500,10000
+Green Belt,Village Plantation (5 ha),5,850,4250
+Total Sequestration Increase,,,,34500

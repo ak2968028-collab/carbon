@@ -1,0 +1,9 @@
+CORBON_REDUCTION(After Interventions),,,,
+Sector,Intervention,Activity Reduction,Emission Factor,Annual CO2 Reduction (kg)
+Energy,Solar Rooftop (500 MWh),500000,0.9,450000
+Cooking,LPG Efficiency (10%),5181.6,3.09,16011.144
+Biomass,Improved Cookstove (20%),10008,2.06,20616.48
+Transport,EV Adoption (20%),2971.2,2.65,7873.68
+Agriculture,Rice Methane Reduction (15%),20.7,3960,81972
+Waste,Composting (30%),77526,1.3,100783.8
+Total Reduction,,,,677257.104
