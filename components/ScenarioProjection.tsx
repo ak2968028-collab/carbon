@@ -1,111 +1,94 @@
 'use client';
 import { useState } from 'react';
 
-interface ScenarioRow {
-  Year: string;
-  'Business as Usual': string;
-  'Line of Sight': string;
-  Accelerated: string;
+export interface ScenarioRow {
+  vlcode: string; village_name: string;
+  year: string; business_as_usual: string; line_of_sight: string; accelerated: string;
 }
 
-const SCENARIOS = [
-  { key: 'Business as Usual', color: '#ef4444', label: 'BAU', desc: 'No change', icon: '📈' },
-  { key: 'Line of Sight', color: '#f97316', label: 'LoS', desc: 'Moderate action', icon: '📊' },
-  { key: 'Accelerated', color: '#22c55e', label: 'ACC', desc: 'Full intervention', icon: '🚀' },
+const S = [
+  { key: 'business_as_usual' as const, label: 'Business as Usual', short: 'BAU', color: '#ef4444', dash: '' },
+  { key: 'line_of_sight'     as const, label: 'Line of Sight',     short: 'LoS', color: '#f97316', dash: '6,3' },
+  { key: 'accelerated'       as const, label: 'Accelerated',       short: 'ACC', color: '#22c55e', dash: '2,2' },
 ];
 
-export default function ScenarioProjection({ data }: { data: ScenarioRow[] }) {
-  const [active, setActive] = useState<string[]>(['Business as Usual', 'Line of Sight', 'Accelerated']);
+export default function ScenarioProjection({ rows }: { rows: ScenarioRow[] | null | undefined }) {
+  const [active, setActive] = useState(['business_as_usual', 'line_of_sight', 'accelerated']);
 
-  const toggle = (key: string) => setActive(prev =>
-    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-  );
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 220 }}>
+        <div style={{ textAlign: 'center', color: '#9ca3af' }}><div style={{ fontSize: 28, marginBottom: 8 }}>🔮</div><div style={{ fontSize: 13 }}>No scenario data available</div></div>
+      </div>
+    );
+  }
 
-  const allValues = data.flatMap(r =>
-    SCENARIOS.map(s => parseFloat(r[s.key as keyof ScenarioRow]))
-  );
-  const minVal = Math.min(...allValues) * 0.95;
-  const maxVal = Math.max(...allValues) * 1.02;
-  const years = data.map(r => r.Year);
-
-  const W = 400, H = 200, padL = 50, padR = 20, padT = 10, padB = 30;
-  const chartW = W - padL - padR;
-  const chartH = H - padT - padB;
-
-  const xPos = (i: number) => padL + (i / (years.length - 1)) * chartW;
-  const yPos = (val: number) => padT + chartH - ((val - minVal) / (maxVal - minVal)) * chartH;
-
-  const makePath = (key: string) =>
-    data.map((r, i) => `${i === 0 ? 'M' : 'L'} ${xPos(i)} ${yPos(parseFloat(r[key as keyof ScenarioRow]))}`).join(' ');
+  const toggle = (k: string) => setActive(p => p.includes(k) ? p.filter(x => x !== k) : [...p, k]);
+  const allVals = rows.flatMap(r => S.map(s => parseFloat(r[s.key] || '0')));
+  const minV = Math.min(...allVals) * 0.96, maxV = Math.max(...allVals) * 1.02;
+  const W = 440, H = 200, pL = 52, pR = 16, pT = 12, pB = 28;
+  const cW = W - pL - pR, cH = H - pT - pB;
+  const xP = (i: number) => pL + (i / Math.max(rows.length - 1, 1)) * cW;
+  const yP = (v: number) => pT + cH - ((v - minV) / Math.max(maxV - minV, 1)) * cH;
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-xl">
-      <h2 className="text-white font-bold text-lg flex items-center gap-2 mb-4">
-        <span className="text-2xl">🔮</span> Emission Scenario Projections
-      </h2>
+    <div className="card">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'Outfit, sans-serif' }}>Emission Scenario Projections</h3>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Projected CO₂e under different intervention pathways</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {S.map(s => (
+            <button key={s.key} onClick={() => toggle(s.key)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Outfit, sans-serif',
+                border: `1px solid ${active.includes(s.key) ? s.color : '#e5e7eb'}`,
+                background: active.includes(s.key) ? `${s.color}12` : 'white',
+                color: active.includes(s.key) ? s.color : '#9ca3af' }}>
+              <span style={{ width: 12, height: 2, background: active.includes(s.key) ? s.color : '#d1d5db', display: 'inline-block', borderRadius: 1 }} />
+              {s.short}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Toggle buttons */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {SCENARIOS.map(s => (
-          <button
-            key={s.key}
-            onClick={() => toggle(s.key)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${active.includes(s.key) ? 'border-transparent text-white' : 'border-gray-600 text-gray-500 bg-transparent'}`}
-            style={active.includes(s.key) ? { backgroundColor: s.color + '33', borderColor: s.color, color: s.color } : {}}
-          >
-            {s.icon} {s.label}
-          </button>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', overflow: 'visible' }}>
+        {/* Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map(t => (
+          <g key={t}>
+            <line x1={pL} y1={pT + t * cH} x2={W - pR} y2={pT + t * cH} stroke="#f3f4f6" strokeWidth="1.5" />
+            <text x={pL - 6} y={pT + t * cH + 3} textAnchor="end" fill="#9ca3af" fontSize="9">{((maxV - t * (maxV - minV)) / 1000).toFixed(0)}t</text>
+          </g>
         ))}
-      </div>
+        {rows.map((r, i) => (
+          <text key={r.year} x={xP(i)} y={H - 4} textAnchor="middle" fill="#9ca3af" fontSize="9" fontFamily="Outfit">{r.year}</text>
+        ))}
+        {/* Lines */}
+        {S.filter(s => active.includes(s.key)).map(s => (
+          <g key={s.key}>
+            <path d={rows.map((r, i) => `${i === 0 ? 'M' : 'L'}${xP(i)} ${yP(parseFloat(r[s.key] || '0'))}`).join(' ')}
+              fill="none" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dash} />
+            {rows.map((r, i) => (
+              <g key={i}>
+                <circle cx={xP(i)} cy={yP(parseFloat(r[s.key] || '0'))} r="5" fill="white" stroke={s.color} strokeWidth="2" />
+                <title>{s.label}: {(parseFloat(r[s.key] || '0') / 1000).toFixed(1)}t ({r.year})</title>
+              </g>
+            ))}
+          </g>
+        ))}
+      </svg>
 
-      {/* SVG Line Chart */}
-      <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 280 }}>
-          {/* Grid */}
-          {[0, 0.25, 0.5, 0.75, 1].map(t => (
-            <g key={t}>
-              <line x1={padL} y1={padT + t * chartH} x2={W - padR} y2={padT + t * chartH}
-                stroke="#374151" strokeWidth="0.5" strokeDasharray="4,4" />
-              <text x={padL - 4} y={padT + t * chartH + 3} textAnchor="end" fill="#6b7280" fontSize="8">
-                {((maxVal - t * (maxVal - minVal)) / 1000).toFixed(0)}t
-              </text>
-            </g>
-          ))}
-
-          {/* Year labels */}
-          {years.map((y, i) => (
-            <text key={y} x={xPos(i)} y={H - 5} textAnchor="middle" fill="#9ca3af" fontSize="9">{y}</text>
-          ))}
-
-          {/* Lines */}
-          {SCENARIOS.filter(s => active.includes(s.key)).map(s => (
-            <g key={s.key}>
-              <path d={makePath(s.key)} fill="none" stroke={s.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              {data.map((r, i) => (
-                <circle key={i} cx={xPos(i)} cy={yPos(parseFloat(r[s.key as keyof ScenarioRow]))}
-                  r="4" fill={s.color} stroke="#111827" strokeWidth="1.5">
-                  <title>{s.key}: {(parseFloat(r[s.key as keyof ScenarioRow]) / 1000).toFixed(1)}t in {r.Year}</title>
-                </circle>
-              ))}
-            </g>
-          ))}
-        </svg>
-      </div>
-
-      {/* 2035 comparison */}
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {SCENARIOS.map(s => {
-          const val2035 = parseFloat(data[data.length - 1]?.[s.key as keyof ScenarioRow] || '0');
-          const val2023 = parseFloat(data[0]?.[s.key as keyof ScenarioRow] || '0');
-          const delta = ((val2035 - val2023) / val2023 * 100).toFixed(1);
-          const positive = val2035 > val2023;
+      {/* Summary row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+        {S.map(s => {
+          const last = parseFloat(rows[rows.length - 1]?.[s.key] || '0');
+          const first = parseFloat(rows[0]?.[s.key] || '0');
+          const delta = first > 0 ? ((last - first) / first * 100) : 0;
           return (
-            <div key={s.key} className="bg-gray-800 rounded-xl p-3 text-center">
-              <div className="text-xs text-gray-400 mb-1">{s.icon} {s.label} 2035</div>
-              <div className="text-white text-sm font-bold">{(val2035 / 1000).toFixed(0)}t</div>
-              <div className={`text-xs mt-1 ${positive ? 'text-red-400' : 'text-green-400'}`}>
-                {positive ? '▲' : '▼'} {Math.abs(parseFloat(delta))}%
-              </div>
+            <div key={s.key} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>{s.short} · {rows[rows.length - 1]?.year}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#111827', fontFamily: 'Outfit, sans-serif' }}>{(last/1000).toFixed(0)}t</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: delta > 0 ? '#ef4444' : '#22c55e', marginTop: 2 }}>{delta > 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%</div>
             </div>
           );
         })}

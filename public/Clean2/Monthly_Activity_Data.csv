@@ -1,8 +1,8 @@
-Activity,Unit,Monthly Quantity
-LPG Consumption,kg,4318
-Firewood Consumption,kg,4170
-Electricity Consumption,kWh,25654
-Solid Waste,kg,708
-Petrol Consumption,Litres,1238
-Vehicles (2-wheelers),Count,94
-Livestock,Count,354
+vlcode,village_name,activity,unit,monthly_quantity
+200001,Hasudi Ausanpur,LPG Consumption,kg,4318
+200001,Hasudi Ausanpur,Firewood Consumption,kg,4170
+200001,Hasudi Ausanpur,Electricity Consumption,kWh,25654
+200001,Hasudi Ausanpur,Solid Waste,kg,708
+200001,Hasudi Ausanpur,Petrol Consumption,Litres,1238
+200001,Hasudi Ausanpur,Vehicles (2-wheelers),Count,94
+200001,Hasudi Ausanpur,Livestock,Count,354

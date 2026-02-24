@@ -1,112 +1,121 @@
 'use client';
 import { useState } from 'react';
 
-interface BudgetBefore {
-  Parameter: string;
-  Value: string;
-  Unit: string;
-}
-interface BudgetAfter {
-  Parameter: string;
-  Value: string;
+export interface BudgetRow { vlcode: string; village_name: string; parameter: string; value: string; unit?: string; }
+
+function getVal(rows: BudgetRow[], param: string): number {
+  return parseFloat(rows.find(r => r.parameter?.toLowerCase().includes(param.toLowerCase()))?.value || '0');
 }
 
-interface Props {
-  before: BudgetBefore[];
-  after: BudgetAfter[];
-}
-
-export default function CarbonBudgetCard({ before, after }: Props) {
+export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[] | null | undefined; after: BudgetRow[] | null | undefined }) {
   const [view, setView] = useState<'before' | 'after'>('before');
 
-  const getVal = (arr: { Parameter: string; Value: string }[], param: string) =>
-    arr.find(r => r.Parameter.includes(param))?.Value || '0';
+  const noData = (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180, color: '#9ca3af' }}>
+      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 28, marginBottom: 8 }}>💰</div><div style={{ fontSize: 13 }}>No data available</div></div>
+    </div>
+  );
 
-  const netBefore = parseFloat(getVal(before, 'Net Emission'));
-  const netAfter = parseFloat(getVal(after, 'New Net Emission'));
-  const reduction = parseFloat(getVal(after, 'Percentage Reduction'));
-  const totalEmission = parseFloat(getVal(before, 'Total Emission'));
-  const totalSeq = parseFloat(getVal(before, 'Total Sequestration'));
-  const perCapita = parseFloat(getVal(before, 'Per Capita'));
-
-  const progress = (totalSeq / totalEmission) * 100;
+  const tabBtn = (t: 'before' | 'after', label: string) => (
+    <button className="tab-pill" onClick={() => setView(t)}
+      style={{ background: view === t ? (t === 'before' ? '#fef2f2' : '#f0fdf4') : 'transparent',
+        color: view === t ? (t === 'before' ? '#dc2626' : '#15803d') : '#9ca3af',
+        border: view === t ? `1px solid ${t === 'before' ? '#fecaca' : '#bbf7d0'}` : '1px solid transparent' }}>
+      {label}
+    </button>
+  );
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-xl">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-white font-bold text-lg flex items-center gap-2">
-          <span className="text-2xl">💰</span> Carbon Budget
-        </h2>
-        <div className="flex bg-gray-800 rounded-lg p-1 gap-1">
-          <button
-            onClick={() => setView('before')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition-all ${view === 'before' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
-          >Before</button>
-          <button
-            onClick={() => setView('after')}
-            className={`px-3 py-1 rounded text-xs font-semibold transition-all ${view === 'after' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
-          >After</button>
+    <div className="card" style={{ height: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'Outfit, sans-serif' }}>Carbon Budget</h3>
+          <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Emission & sequestration balance</p>
+        </div>
+        <div style={{ display: 'flex', gap: 4, background: '#f9fafb', borderRadius: 10, padding: 3 }}>
+          {tabBtn('before', 'Before')}
+          {tabBtn('after', 'After')}
         </div>
       </div>
 
       {view === 'before' ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-red-950/50 border border-red-800 rounded-xl p-4">
-              <div className="text-red-400 text-xs uppercase tracking-wide mb-1">Total Emissions</div>
-              <div className="text-white text-xl font-bold">{(totalEmission / 1000).toFixed(0)}t</div>
-              <div className="text-red-400 text-xs">CO₂e / year</div>
+        !before || before.length === 0 ? noData : (() => {
+          const totalEm = getVal(before, 'total emission');
+          const totalSeq = getVal(before, 'total sequestration');
+          const netEm = getVal(before, 'net emission');
+          const perCap = getVal(before, 'per capita');
+          const monthly = getVal(before, 'monthly');
+          const coverage = totalEm > 0 ? (totalSeq / totalEm) * 100 : 0;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 10, color: '#ef4444', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Total Emissions</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#dc2626', fontFamily: 'Outfit, sans-serif' }}>{(totalEm/1000).toFixed(0)}t</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>CO₂e/year</div>
+                </div>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '14px 16px' }}>
+                  <div style={{ fontSize: 10, color: '#16a34a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Sequestration</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d', fontFamily: 'Outfit, sans-serif' }}>{(totalSeq/1000).toFixed(1)}t</div>
+                  <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>CO₂e/year</div>
+                </div>
+              </div>
+              <div style={{ background: '#f9fafb', borderRadius: 10, padding: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Sequestration coverage</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{coverage.toFixed(1)}%</span>
+                </div>
+                <div style={{ background: '#e5e7eb', borderRadius: 99, height: 8 }}>
+                  <div style={{ background: 'linear-gradient(90deg,#22c55e,#4ade80)', height: 8, borderRadius: 99, width: `${Math.min(coverage,100)}%` }} className="bar-fill" />
+                </div>
+              </div>
+              {[
+                { label: 'Net Emission', val: `${(netEm/1000).toFixed(1)}t`, color: '#dc2626' },
+                { label: 'Per Capita',  val: `${perCap.toFixed(0)} kg`,      color: '#374151' },
+                { label: 'Monthly Net', val: `${(monthly/1000).toFixed(1)}t/mo`, color: '#374151' },
+              ].map(item => (
+                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>{item.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: item.color, fontFamily: 'DM Mono, monospace' }}>{item.val}</span>
+                </div>
+              ))}
             </div>
-            <div className="bg-green-950/50 border border-green-800 rounded-xl p-4">
-              <div className="text-green-400 text-xs uppercase tracking-wide mb-1">Sequestration</div>
-              <div className="text-white text-xl font-bold">{(totalSeq / 1000).toFixed(1)}t</div>
-              <div className="text-green-400 text-xs">CO₂e / year</div>
-            </div>
-          </div>
-          <div className="bg-gray-800 rounded-xl p-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-400 text-xs">Sequestration Coverage</span>
-              <span className="text-white text-xs font-semibold">{progress.toFixed(1)}%</span>
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-3">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-400 h-3 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-orange-950/40 border border-orange-800 rounded-xl p-4">
-              <div className="text-orange-400 text-xs">Net Emission</div>
-              <div className="text-white text-lg font-bold">{(netBefore / 1000).toFixed(1)}t</div>
-            </div>
-            <div className="bg-blue-950/40 border border-blue-800 rounded-xl p-4">
-              <div className="text-blue-400 text-xs">Per Capita</div>
-              <div className="text-white text-lg font-bold">{perCapita.toFixed(0)} kg</div>
-            </div>
-          </div>
-        </div>
+          );
+        })()
       ) : (
-        <div className="space-y-4">
-          <div className="bg-gradient-to-r from-green-900 to-emerald-900 border border-green-700 rounded-xl p-5 text-center">
-            <div className="text-green-300 text-sm mb-1">Reduction Achieved</div>
-            <div className="text-5xl font-black text-green-400">{reduction.toFixed(1)}%</div>
-            <div className="text-green-300 text-xs mt-1">through interventions</div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-800 rounded-xl p-4">
-              <div className="text-gray-400 text-xs">Previous Net</div>
-              <div className="text-red-400 text-lg font-bold line-through">{(netBefore / 1000).toFixed(1)}t</div>
+        !after || after.length === 0 ? noData : (() => {
+          const prevNet = getVal(after, 'previous net');
+          const newNet = getVal(after, 'new net');
+          const pct = getVal(after, 'percentage');
+          const emRed = getVal(after, 'emission reduction');
+          const seqInc = getVal(after, 'sequestration increase');
+          const impact = getVal(after, 'total impact');
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ background: 'linear-gradient(135deg,#f0fdf4,#dcfce7)', border: '1px solid #bbf7d0', borderRadius: 14, padding: '18px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Reduction Achieved</div>
+                <div style={{ fontSize: 48, fontWeight: 800, color: '#15803d', fontFamily: 'Outfit, sans-serif', lineHeight: 1 }}>{pct.toFixed(1)}%</div>
+                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>via interventions</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: 12 }}>
+                  <div style={{ fontSize: 10, color: '#9ca3af' }}>Before</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#dc2626', textDecoration: 'line-through' }}>{(prevNet/1000).toFixed(1)}t</div>
+                </div>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: 12 }}>
+                  <div style={{ fontSize: 10, color: '#9ca3af' }}>After</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#15803d' }}>{(newNet/1000).toFixed(1)}t</div>
+                </div>
+              </div>
+              {[['Emission Reduced', emRed], ['Sequestration Added', seqInc], ['Total Impact', impact]].map(([l, v]) => (
+                <div key={l as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #f3f4f6' }}>
+                  <span style={{ fontSize: 12, color: '#9ca3af' }}>{l}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', fontFamily: 'DM Mono, monospace' }}>{((v as number)/1000).toFixed(1)}t</span>
+                </div>
+              ))}
             </div>
-            <div className="bg-gray-800 rounded-xl p-4">
-              <div className="text-gray-400 text-xs">New Net</div>
-              <div className="text-green-400 text-lg font-bold">{(netAfter / 1000).toFixed(1)}t</div>
-            </div>
-          </div>
-          {after.filter(r => r.Parameter && r.Parameter !== 'Parameter' && !r.Parameter.includes('Previous') && !r.Parameter.includes('New') && !r.Parameter.includes('Percentage')).map((row) => (
-            <div key={row.Parameter} className="flex justify-between items-center py-2 border-b border-gray-700">
-              <span className="text-gray-400 text-xs">{row.Parameter}</span>
-              <span className="text-white text-xs font-semibold">{parseFloat(row.Value).toLocaleString()} kg</span>
-            </div>
-          ))}
-        </div>
+          );
+        })()
       )}
     </div>
   );

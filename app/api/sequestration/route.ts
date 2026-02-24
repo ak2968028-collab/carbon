@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csvParser';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const before = parseCSV('Carbon_Sequestration(Before Intervention).csv');
-    const after = parseCSV('CARBON_SEQUESTRATION(After Interventions).csv');
+    const { searchParams } = new URL(req.url);
+    const vlcode = searchParams.get('vlcode') || '';
+    const beforeAll = parseCSV('Carbon_Sequestration_Before.csv');
+    const afterAll  = parseCSV('Carbon_Sequestration_After.csv');
+    const before = vlcode ? beforeAll.filter(r => r.vlcode === vlcode) : beforeAll;
+    const after  = vlcode ? afterAll.filter(r => r.vlcode === vlcode)  : afterAll;
     return NextResponse.json({ success: true, before, after });
   } catch (e) {
     return NextResponse.json({ success: false, error: String(e) }, { status: 500 });

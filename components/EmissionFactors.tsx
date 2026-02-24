@@ -1,59 +1,42 @@
 'use client';
 
-interface FactorRow {
-  Category: string;
-  'Emission Factor': string;
-  Source: string;
-}
+export interface FactorRow { category: string; emission_factor: string; source: string; }
 
-const CAT_ICONS: Record<string, string> = {
-  LPG: '🔥', Firewood: '🪵', Electricity: '⚡', 'Petrol/Diesel': '⛽', Waste: '🗑️', Rice: '🌾', Wheat: '🌾',
+const ICONS: Record<string, string> = { LPG: '🔥', Firewood: '🪵', Electricity: '⚡', 'Petrol/Diesel': '⛽', Waste: '🗑️', Rice: '🌾', Wheat: '🌾' };
+const SRC: Record<string, { bg: string; color: string }> = {
+  'IPCC 2006': { bg: '#eff6ff', color: '#1d4ed8' },
+  'CEA India': { bg: '#fff7ed', color: '#c2410c' },
+  'CPCB':      { bg: '#faf5ff', color: '#7c3aed' },
+  'EX-ACT':    { bg: '#f0fdf4', color: '#15803d' },
 };
 
-const SOURCE_COLORS: Record<string, string> = {
-  'IPCC 2006': 'bg-blue-900/40 text-blue-300 border-blue-700',
-  'CEA India': 'bg-orange-900/40 text-orange-300 border-orange-700',
-  'CPCB': 'bg-purple-900/40 text-purple-300 border-purple-700',
-  'EX-ACT': 'bg-green-900/40 text-green-300 border-green-700',
-};
+export default function EmissionFactors({ rows }: { rows: FactorRow[] | null | undefined }) {
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 160 }}>
+        <div style={{ textAlign: 'center', color: '#9ca3af' }}><div style={{ fontSize: 28, marginBottom: 8 }}>🧪</div><div style={{ fontSize: 13 }}>No emission factors</div></div>
+      </div>
+    );
+  }
 
-export default function EmissionFactors({ data }: { data: FactorRow[] }) {
-  const filtered = data.filter(r => r.Category);
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-xl">
-      <h2 className="text-white font-bold text-lg flex items-center gap-2 mb-5">
-        <span className="text-2xl">🧪</span> Emission Factors Reference
-      </h2>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left text-gray-400 text-xs uppercase tracking-wide pb-3 pr-4">Category</th>
-              <th className="text-left text-gray-400 text-xs uppercase tracking-wide pb-3 pr-4">Factor</th>
-              <th className="text-left text-gray-400 text-xs uppercase tracking-wide pb-3">Source</th>
-            </tr>
-          </thead>
-          <tbody className="space-y-1">
-            {filtered.map((r, i) => (
-              <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
-                <td className="py-3 pr-4">
-                  <div className="flex items-center gap-2">
-                    <span>{CAT_ICONS[r.Category] || '•'}</span>
-                    <span className="text-white text-sm">{r.Category}</span>
-                  </div>
-                </td>
-                <td className="py-3 pr-4">
-                  <span className="text-green-400 text-xs font-mono">{r['Emission Factor']}</span>
-                </td>
-                <td className="py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded border ${SOURCE_COLORS[r.Source] || 'bg-gray-800 text-gray-300 border-gray-600'}`}>
-                    {r.Source}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="card">
+      <div style={{ marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'Outfit, sans-serif' }}>Emission Factors</h3>
+        <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Reference values used in calculations</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {rows.map((r, i) => {
+          const ss = SRC[r.source] || { bg: '#f9fafb', color: '#374151' };
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 8, background: i % 2 === 0 ? '#fafafa' : 'white' }}>
+              <span style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>{ICONS[r.category] || '•'}</span>
+              <span style={{ fontSize: 13, color: '#374151', flex: 1, fontWeight: 500 }}>{r.category}</span>
+              <span style={{ fontSize: 11, color: '#15803d', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>{r.emission_factor}</span>
+              <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 99, background: ss.bg, color: ss.color, fontWeight: 600, flexShrink: 0 }}>{r.source}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-Category,Emission Factor,Source
+category,emission_factor,source
 LPG,1.77-3.09 kg CO2/unit,IPCC 2006
 Firewood,1.60-2.06 kg CO2/unit,IPCC 2006
 Electricity,0.9 kg CO2/kWh,CEA India

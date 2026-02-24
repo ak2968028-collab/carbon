@@ -1,0 +1,7 @@
+vlcode,village_name,sector,intervention,activity_reduction,emission_factor,annual_co2_reduction_kg
+200001,Hasudi Ausanpur,Energy,Solar Rooftop (500 MWh),500000,0.9,450000
+200001,Hasudi Ausanpur,Cooking,LPG Efficiency (10%),5181.6,3.09,16011.144
+200001,Hasudi Ausanpur,Biomass,Improved Cookstove (20%),10008,2.06,20616.48
+200001,Hasudi Ausanpur,Transport,EV Adoption (20%),2971.2,2.65,7873.68
+200001,Hasudi Ausanpur,Agriculture,Rice Methane Reduction (15%),20.7,3960,81972
+200001,Hasudi Ausanpur,Waste,Composting (30%),77526,1.3,100783.8

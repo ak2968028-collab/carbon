@@ -1,10 +1,9 @@
-Sector,Activity,Annual CO2 (kg)
-Residential,LPG,160134
-Residential,Firewood,103082
-Energy,Electricity,277069
-Transport,Petrol Vehicles,39365
-Agriculture,Wheat (Rabi),319608
-Agriculture,Rice (Kharif),546480
-Waste,Solid Waste,331344
-Livestock,Enteric Fermentation,2372
-Total,,1779454
+vlcode,village_name,sector,activity,annual_co2_kg
+200001,Hasudi Ausanpur,Residential,LPG,160134
+200001,Hasudi Ausanpur,Residential,Firewood,103082
+200001,Hasudi Ausanpur,Energy,Electricity,277069
+200001,Hasudi Ausanpur,Transport,Petrol Vehicles,39365
+200001,Hasudi Ausanpur,Agriculture,Wheat (Rabi),319608
+200001,Hasudi Ausanpur,Agriculture,Rice (Kharif),546480
+200001,Hasudi Ausanpur,Waste,Solid Waste,331344
+200001,Hasudi Ausanpur,Livestock,Enteric Fermentation,2372

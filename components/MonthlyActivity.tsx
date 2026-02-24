@@ -1,49 +1,52 @@
 'use client';
 
-interface ActivityRow {
-  Activity: string;
-  Unit: string;
-  'Monthly Quantity': string;
-}
+export interface MonthlyRow { vlcode: string; village_name: string; activity: string; unit: string; monthly_quantity: string; }
 
-const ACTIVITY_CONFIG: Record<string, { icon: string; color: string; bg: string }> = {
-  'LPG Consumption': { icon: '🔥', color: '#f97316', bg: 'bg-orange-950/40' },
-  'Firewood Consumption': { icon: '🪵', color: '#a3a3a3', bg: 'bg-gray-800' },
-  'Electricity Consumption': { icon: '⚡', color: '#eab308', bg: 'bg-yellow-950/40' },
-  'Solid Waste': { icon: '🗑️', color: '#8b5cf6', bg: 'bg-purple-950/40' },
-  'Petrol Consumption': { icon: '⛽', color: '#ef4444', bg: 'bg-red-950/40' },
-  'Vehicles (2-wheelers)': { icon: '🛵', color: '#3b82f6', bg: 'bg-blue-950/40' },
-  Livestock: { icon: '🐄', color: '#22c55e', bg: 'bg-green-950/40' },
+const A: Record<string, { icon: string; color: string; bg: string }> = {
+  'LPG Consumption':         { icon: '🔥', color: '#f97316', bg: '#fff7ed' },
+  'Firewood Consumption':    { icon: '🪵', color: '#78716c', bg: '#fafaf9' },
+  'Electricity Consumption': { icon: '⚡', color: '#eab308', bg: '#fefce8' },
+  'Solid Waste':             { icon: '🗑️', color: '#8b5cf6', bg: '#faf5ff' },
+  'Petrol Consumption':      { icon: '⛽', color: '#ef4444', bg: '#fef2f2' },
+  'Vehicles (2-wheelers)':   { icon: '🛵', color: '#3b82f6', bg: '#eff6ff' },
+  'Livestock':               { icon: '🐄', color: '#22c55e', bg: '#f0fdf4' },
 };
 
-export default function MonthlyActivity({ data }: { data: ActivityRow[] }) {
-  const filtered = data.filter(r => r.Activity && r['Monthly Quantity']);
-  const maxQty = Math.max(...filtered.map(r => parseFloat(r['Monthly Quantity'] || '0')));
+export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefined }) {
+  if (!rows || rows.length === 0) {
+    return (
+      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+        <div style={{ textAlign: 'center', color: '#9ca3af' }}><div style={{ fontSize: 28, marginBottom: 8 }}>📅</div><div style={{ fontSize: 13 }}>No monthly data available</div></div>
+      </div>
+    );
+  }
+
+  const items = rows.map(r => ({ ...r, val: parseFloat(r.monthly_quantity || '0') }));
+  const max = Math.max(...items.map(i => i.val), 1);
 
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 shadow-xl">
-      <h2 className="text-white font-bold text-lg flex items-center gap-2 mb-5">
-        <span className="text-2xl">📅</span> Monthly Activity Data
-      </h2>
-      <div className="space-y-3">
-        {filtered.map((r, i) => {
-          const qty = parseFloat(r['Monthly Quantity']);
-          const pct = (qty / maxQty) * 100;
-          const config = ACTIVITY_CONFIG[r.Activity] || { icon: '•', color: '#6b7280', bg: 'bg-gray-800' };
+    <div className="card">
+      <div style={{ marginBottom: 20 }}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'Outfit, sans-serif' }}>Monthly Activity</h3>
+        <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Resource consumption per month</p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map((item, i) => {
+          const st = A[item.activity] || { icon: '•', color: '#9ca3af', bg: '#f9fafb' };
           return (
-            <div key={i} className={`${config.bg} rounded-xl p-3`}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{config.icon}</span>
-                  <span className="text-gray-300 text-sm">{r.Activity}</span>
+            <div key={i} style={{ background: st.bg, borderRadius: 10, padding: '10px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{st.icon}</span>
+                  <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{item.activity}</span>
                 </div>
-                <div className="text-right">
-                  <span className="text-white font-bold text-sm">{qty.toLocaleString()}</span>
-                  <span className="text-gray-500 text-xs ml-1">{r.Unit}</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'DM Mono, monospace' }}>{item.val.toLocaleString()}</span>
+                  <span style={{ fontSize: 10, color: '#9ca3af' }}>{item.unit}</span>
                 </div>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-1.5">
-                <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: config.color }} />
+              <div style={{ background: 'rgba(255,255,255,0.8)', borderRadius: 99, height: 4 }}>
+                <div style={{ background: st.color, height: 4, borderRadius: 99, width: `${(item.val / max) * 100}%` }} className="bar-fill" />
               </div>
             </div>
           );

@@ -3,7 +3,7 @@ import { parseCSV } from '@/lib/csvParser';
 
 export async function GET() {
   try {
-    const data = parseCSV('emission_factor.csv');
+    const data = parseCSV('Emission_Factors.csv');
     return NextResponse.json({ success: true, data });
   } catch (e) {
     return NextResponse.json({ success: false, error: String(e) }, { status: 500 });

@@ -1,73 +1,51 @@
 'use client';
 
-interface VillageData {
-  'Village Name': string;
-  vlcode: string;
-  District: string;
-  State: string;
-  'Total Population(Person)': string;
-  'Total Area(Hectares)': string;
-  'Built-up Area(Hectares)': string;
-  'Agricultural Area(Hectares)': string;
-  'Water Bodies Area(Hectares)': string;
-  'Total Households(Number)': string;
-  'Total Livestock(Number)': string;
-  'Total Vehicles(Number)': string;
+export interface VillageRow {
+  vlcode: string; village_name: string; district: string; state: string;
+  total_population: string; total_area_ha: string; builtup_area_ha: string;
+  agricultural_area_ha: string; water_bodies_area_ha: string;
+  total_households: string; total_livestock: string; total_vehicles: string;
 }
 
-export default function VillageHeader({ village }: { village: VillageData }) {
+export default function VillageHeader({ v }: { v: VillageRow | null | undefined }) {
+  if (!v) return null;
+
   const stats = [
-    { label: 'Population', value: Number(village['Total Population(Person)']).toLocaleString(), icon: '👥', color: 'from-blue-500 to-blue-700' },
-    { label: 'Total Area', value: `${village['Total Area(Hectares)']} ha`, icon: '🗺️', color: 'from-emerald-500 to-emerald-700' },
-    { label: 'Agricultural Area', value: `${village['Agricultural Area(Hectares)']} ha`, icon: '🌾', color: 'from-yellow-500 to-yellow-700' },
-    { label: 'Households', value: village['Total Households(Number)'], icon: '🏠', color: 'from-purple-500 to-purple-700' },
-    { label: 'Livestock', value: village['Total Livestock(Number)'], icon: '🐄', color: 'from-orange-500 to-orange-700' },
-    { label: 'Vehicles', value: village['Total Vehicles(Number)'], icon: '🛵', color: 'from-red-500 to-red-700' },
+    { label: 'Population',  value: Number(v.total_population || 0).toLocaleString(), icon: '👥', accent: '#3b82f6' },
+    { label: 'Total Area',  value: `${v.total_area_ha || '—'} ha`,                   icon: '🗺️',  accent: '#8b5cf6' },
+    { label: 'Agri Area',   value: `${v.agricultural_area_ha || '—'} ha`,             icon: '🌾',  accent: '#f59e0b' },
+    { label: 'Water Bodies',value: `${v.water_bodies_area_ha || '—'} ha`,             icon: '💧',  accent: '#06b6d4' },
+    { label: 'Households',  value: v.total_households || '—',                         icon: '🏠',  accent: '#ec4899' },
+    { label: 'Livestock',   value: v.total_livestock || '—',                          icon: '🐄',  accent: '#10b981' },
   ];
 
   return (
-    <div className="mb-8">
-      {/* Hero Banner */}
-      <div className="relative bg-gradient-to-r from-green-900 via-green-800 to-emerald-900 rounded-2xl p-8 mb-6 overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-72 h-72 bg-green-400 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-400 rounded-full translate-x-1/4 translate-y-1/4 blur-3xl" />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-4xl">🌿</span>
-                <div>
-                  <h1 className="text-3xl font-bold text-white tracking-tight">{village['Village Name']}</h1>
-                  <p className="text-green-300 text-sm mt-1">{village.District}, {village.State}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 mt-3">
-                <span className="bg-green-700/60 text-green-200 text-xs font-semibold px-3 py-1 rounded-full border border-green-600">
-                  VL Code: {village.vlcode || 'VL001'}
-                </span>
-                <span className="bg-emerald-700/60 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-600">
-                  Carbon Monitoring Active
-                </span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-green-300 text-xs uppercase tracking-widest mb-1">Water Bodies</div>
-              <div className="text-white text-2xl font-bold">{village['Water Bodies Area(Hectares)']} ha</div>
-              <div className="text-green-400 text-xs mt-1">Natural Carbon Sink</div>
-            </div>
+    <div style={{ marginBottom: 24 }}>
+      {/* Header banner */}
+      <div style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #ecfdf5 100%)', border: '1px solid #bbf7d0', borderRadius: 16, padding: '20px 28px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: 'white', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>🌿</div>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#111827', fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.01em' }}>{v.village_name}</div>
+            <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{v.district}, {v.state}</div>
           </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ background: 'white', border: '1px solid #d1d5db', color: '#374151', fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99, fontFamily: 'DM Mono, monospace' }}>VL · {v.vlcode}</span>
+          <span style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#15803d', fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 6, height: 6, background: '#22c55e', borderRadius: '50%', display: 'inline-block' }}></span>
+            Active Monitoring
+          </span>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {stats.map((s) => (
-          <div key={s.label} className={`bg-gradient-to-br ${s.color} rounded-xl p-4 shadow-lg text-white`}>
-            <div className="text-2xl mb-2">{s.icon}</div>
-            <div className="text-xl font-bold">{s.value}</div>
-            <div className="text-xs opacity-80 mt-1">{s.label}</div>
+      {/* Stat pills */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 12px', textAlign: 'center', transition: 'box-shadow 0.2s' }}>
+            <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#111827', fontFamily: 'Outfit, sans-serif' }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 3, fontWeight: 500 }}>{s.label}</div>
           </div>
         ))}
       </div>
