@@ -23,13 +23,76 @@ function AnimNum({ n, decimals = 1 }: { n: number; decimals?: number }) {
   return <>{val.toFixed(decimals)}</>;
 }
 
+function CircularMetric({
+  label,
+  value,
+  unit,
+  percent,
+  color,
+  track = 'rgba(255,255,255,0.08)',
+}: {
+  label: string;
+  value: number;
+  unit: string;
+  percent: number;
+  color: string;
+  track?: string;
+}) {
+  const size = 150;
+  const stroke = 12;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = Math.max(0, Math.min(percent, 100));
+  const dashoffset = circumference - (pct / 100) * circumference;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={track} strokeWidth={stroke} />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashoffset}
+            style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          lineHeight: 1.1,
+        }}>
+          <div style={{ fontSize: 23, fontWeight: 800, color, fontFamily: 'Syne, sans-serif' }}>
+            <AnimNum n={value} decimals={1} />
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{unit}</div>
+        </div>
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[] | null | undefined; after: BudgetRow[] | null | undefined }) {
   const [view, setView] = useState<'before' | 'after'>('before');
 
   const noData = (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200, color: 'var(--text-muted)' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 32, marginBottom: 10, opacity: 0.3 }}>⚖️</div>
+        <div style={{ fontSize: 24, marginBottom: 10, opacity: 0.3, fontWeight: 700 }}>CB</div>
         <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No data available</div>
       </div>
     </div>
@@ -46,7 +109,6 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
             Emission & sequestration balance
           </p>
         </div>
-        {/* Toggle */}
         <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: 99, padding: 3, border: '1px solid rgba(255,255,255,0.06)' }}>
           {(['before', 'after'] as const).map(t => (
             <button key={t} onClick={() => setView(t)} style={{
@@ -68,46 +130,59 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
 
       {view === 'before' ? (
         !before || before.length === 0 ? noData : (() => {
-          const totalEm  = getVal(before, 'total emission');
+          const totalEm = getVal(before, 'total emission');
           const totalSeq = getVal(before, 'total sequestration');
-          const netEm    = getVal(before, 'net emission');
-          const perCap   = getVal(before, 'per capita');
-          const monthly  = getVal(before, 'monthly');
+          const netEm = getVal(before, 'net emission');
+          const perCap = getVal(before, 'per capita');
+          const monthly = getVal(before, 'monthly');
           const coverage = totalEm > 0 ? (totalSeq / totalEm) * 100 : 0;
+          const netVsTotal = totalEm > 0 ? (netEm / totalEm) * 100 : 0;
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Main stats grid */}
+              <div style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: 16,
+                padding: '14px 12px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 10,
+                alignItems: 'center',
+              }}>
+                <CircularMetric
+                  label="Total Emissions"
+                  value={totalEm / 1000}
+                  unit="t CO2e/yr"
+                  percent={100}
+                  color="#ff6b6b"
+                />
+                <CircularMetric
+                  label="Net Emission"
+                  value={netEm / 1000}
+                  unit="t CO2e/yr"
+                  percent={netVsTotal}
+                  color="#ff8f8f"
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div style={{
-                  background: 'rgba(255,77,77,0.06)',
-                  border: '1px solid rgba(255,77,77,0.15)',
-                  borderRadius: 14, padding: '16px 18px',
-                  position: 'relative', overflow: 'hidden',
-                }}>
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 70, height: 70, borderRadius: '50%', background: 'rgba(255,77,77,0.06)', filter: 'blur(20px)' }} />
-                  <div style={{ fontSize: 9, color: '#ff4d4d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Total Emissions</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: '#ff6b6b', fontFamily: 'Syne, sans-serif', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                    <AnimNum n={totalEm / 1000} decimals={0} />t
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>CO₂e per year</div>
-                </div>
-                <div style={{
-                  background: 'rgba(0,230,118,0.05)',
-                  border: '1px solid rgba(0,230,118,0.12)',
-                  borderRadius: 14, padding: '16px 18px',
-                  position: 'relative', overflow: 'hidden',
-                }}>
-                  <div style={{ position: 'absolute', top: -20, right: -20, width: 70, height: 70, borderRadius: '50%', background: 'rgba(0,230,118,0.06)', filter: 'blur(20px)' }} />
-                  <div style={{ fontSize: 9, color: '#00e676', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Sequestration</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: '#00e676', fontFamily: 'Syne, sans-serif', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                <div style={{ background: 'rgba(0,230,118,0.05)', border: '1px solid rgba(0,230,118,0.12)', borderRadius: 12, padding: 14 }}>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sequestration</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#00e676', fontFamily: 'Syne, sans-serif' }}>
                     <AnimNum n={totalSeq / 1000} decimals={1} />t
                   </div>
-                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>CO₂e per year</div>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>CO2e per year</div>
+                </div>
+                <div style={{ background: 'rgba(255,77,77,0.06)', border: '1px solid rgba(255,77,77,0.12)', borderRadius: 12, padding: 14 }}>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Coverage</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: coverage < 10 ? '#ff4d4d' : coverage < 30 ? '#ffb84d' : '#00e676', fontFamily: 'Syne, sans-serif' }}>
+                    <AnimNum n={coverage} decimals={1} />%
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>sequestration / emissions</div>
                 </div>
               </div>
 
-              {/* Coverage bar */}
               <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 14, border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500 }}>Sequestration coverage</span>
@@ -130,11 +205,9 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
                 </div>
               </div>
 
-              {/* Row metrics */}
               {[
-                { label: 'Net Emission',   val: `${(netEm / 1000).toFixed(1)}t`,      color: '#ff6b6b' },
-                { label: 'Per Capita',     val: `${perCap.toFixed(0)} kg/person`,      color: 'var(--text-secondary)' },
-                { label: 'Monthly Net',    val: `${(monthly / 1000).toFixed(1)}t/mo`,  color: 'var(--text-secondary)' },
+                { label: 'Per Capita', val: `${perCap.toFixed(0)} kg/person`, color: 'var(--text-secondary)' },
+                { label: 'Monthly Net', val: `${(monthly / 1000).toFixed(1)}t/mo`, color: 'var(--text-secondary)' },
               ].map(item => (
                 <div key={item.label} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -150,15 +223,14 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
       ) : (
         !after || after.length === 0 ? noData : (() => {
           const prevNet = getVal(after, 'previous net');
-          const newNet  = getVal(after, 'new net');
-          const pct     = getVal(after, 'percentage');
-          const emRed   = getVal(after, 'emission reduction');
-          const seqInc  = getVal(after, 'sequestration increase');
-          const impact  = getVal(after, 'total impact');
+          const newNet = getVal(after, 'new net');
+          const pct = getVal(after, 'percentage');
+          const emRed = getVal(after, 'emission reduction');
+          const seqInc = getVal(after, 'sequestration increase');
+          const impact = getVal(after, 'total impact');
 
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Big reduction number */}
               <div style={{
                 background: 'linear-gradient(135deg, rgba(0,230,118,0.08), rgba(0,184,90,0.04))',
                 border: '1px solid rgba(0,230,118,0.15)',
@@ -185,9 +257,9 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
               </div>
 
               {[
-                ['Emissions Reduced', emRed,  '#00e676'],
-                ['Sequestration Added', seqInc,'#4d9fff'],
-                ['Total Impact', impact,        '#b084ff'],
+                ['Emissions Reduced', emRed, '#00e676'],
+                ['Sequestration Added', seqInc, '#4d9fff'],
+                ['Total Impact', impact, '#b084ff'],
               ].map(([l, v, c]) => (
                 <div key={l as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{l as string}</span>

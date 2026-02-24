@@ -31,19 +31,19 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
   if (!v) return null;
 
   const stats = [
-    { label: 'Population',   value: Number(v.total_population || 0),           suffix: '',    icon: '👥', color: '#4d9fff', unit: 'people'  },
-    { label: 'Total Area',   value: parseFloat(v.total_area_ha || '0'),         suffix: ' ha', icon: '🗺️',  color: '#b084ff', unit: 'hectares' },
-    { label: 'Agri Area',    value: parseFloat(v.agricultural_area_ha || '0'),  suffix: ' ha', icon: '🌾', color: '#ffb84d', unit: 'cultivated' },
-    { label: 'Water Bodies', value: parseFloat(v.water_bodies_area_ha || '0'),  suffix: ' ha', icon: '💧', color: '#00d4ff', unit: 'water area' },
-    { label: 'Households',   value: Number(v.total_households || 0),            suffix: '',    icon: '🏠', color: '#ff7eb6', unit: 'homes'    },
-    { label: 'Livestock',    value: Number(v.total_livestock || 0),             suffix: '',    icon: '🐄', color: '#00e676', unit: 'animals'  },
+    { label: 'Population',   value: Number(v.total_population || 0),           suffix: '',    icon: '👥', color: '#38032a', unit: 'people'  },
+    { label: 'Total Area',   value: parseFloat(v.total_area_ha || '0'),         suffix: ' ha', icon: '🗺️',  color: '#38032a', unit: 'hectares' },
+    { label: 'Agri Area',    value: parseFloat(v.agricultural_area_ha || '0'),  suffix: ' ha', icon: '🌾', color: '#38032a', unit: 'cultivated' },
+    { label: 'Water Bodies', value: parseFloat(v.water_bodies_area_ha || '0'),  suffix: ' ha', icon: '💧', color: '#38032a', unit: 'water area' },
+    { label: 'Households',   value: Number(v.total_households || 0),            suffix: '',    icon: '🏠', color: '#38032a', unit: 'homes'    },
+    { label: 'Livestock',    value: Number(v.total_livestock || 0),             suffix: '',    icon: '🐄', color: '#38032a', unit: 'animals'  },
   ];
 
   return (
     <div style={{ marginBottom: 28, fontFamily: 'var(--font-body, Space Grotesk, sans-serif)' }}>
       {/* Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #0d1a12 0%, #0a1a1a 50%, #0d1117 100%)',
+        background: 'linear-gradient(135deg, #75a6e7 0%, #7ae1e1 50%, #da7a05 100%)',
         border: '1px solid rgba(0,230,118,0.15)',
         borderRadius: 20,
         padding: '22px 28px',
@@ -60,7 +60,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
         <div style={{
           position: 'absolute', top: -60, right: -60,
           width: 200, height: 200, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,230,118,0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(236, 168, 111, 0.91) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
         <div style={{
@@ -83,11 +83,11 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
             <div style={{
               fontSize: 24, fontWeight: 800,
               fontFamily: 'Syne, var(--font-display, sans-serif)',
-              color: '#f0f6ff',
+              color: '#a94008',
               letterSpacing: '-0.02em',
               lineHeight: 1.1,
             }}>{v.village_name}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 3, letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: 15, color: 'rgb(0, 0, 0)', marginTop: 3, letterSpacing: '0.02em' }}>
               {v.district} District · {v.state}
             </div>
           </div>
@@ -95,32 +95,15 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
           <span style={{
-            background: 'rgba(255,255,255,0.06)',
+            background: 'rgba(238, 238, 238, 0.06)',
             border: '1px solid rgba(255,255,255,0.1)',
-            color: 'rgba(255,255,255,0.5)',
+            color: 'rgba(147, 12, 12, 0.5)',
             fontSize: 10, fontWeight: 600,
             padding: '5px 12px', borderRadius: 99,
             fontFamily: 'JetBrains Mono, monospace',
             letterSpacing: '0.08em',
           }}>VL · {v.vlcode}</span>
-          <span style={{
-            background: 'rgba(0,230,118,0.1)',
-            border: '1px solid rgba(0,230,118,0.2)',
-            color: '#00e676',
-            fontSize: 10, fontWeight: 600,
-            padding: '5px 14px', borderRadius: 99,
-            display: 'flex', alignItems: 'center', gap: 6,
-          }}>
-            <span style={{
-              width: 6, height: 6,
-              background: '#00e676',
-              borderRadius: '50%',
-              display: 'inline-block',
-              boxShadow: '0 0 6px #00e676',
-              animation: 'pulse 2s ease-in-out infinite',
-            }} />
-            Active Monitoring
-          </span>
+
         </div>
       </div>
 
@@ -131,7 +114,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
             key={s.label}
             className={`fade-up fade-up-${Math.min(idx+1,4)}`}
             style={{
-              background: 'var(--bg-card, #111820)',
+              background: 'var(--bg-card, #3080dc)',
               border: '1px solid rgba(255,255,255,0.06)',
               borderRadius: 14,
               padding: '16px 12px',
@@ -141,25 +124,13 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
               position: 'relative',
               overflow: 'hidden',
             }}
-            onMouseEnter={e => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.borderColor = `${s.color}40`;
-              el.style.background = '#161e28';
-              el.style.transform = 'translateY(-2px)';
-              el.style.boxShadow = `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px ${s.color}20`;
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget as HTMLElement;
-              el.style.borderColor = 'rgba(255,255,255,0.06)';
-              el.style.background = 'var(--bg-card, #111820)';
-              el.style.transform = 'translateY(0)';
-              el.style.boxShadow = 'none';
-            }}
+            
+            
           >
             <div style={{ fontSize: 20, marginBottom: 8 }}>{s.icon}</div>
             <div style={{
               fontSize: 17, fontWeight: 700,
-              color: '#f0f6ff',
+              color: '#000000',
               fontFamily: 'Syne, sans-serif',
               letterSpacing: '-0.01em',
             }}>
@@ -168,7 +139,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
                 : <>{s.value.toLocaleString()}{s.suffix}</>
               }
             </div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <div style={{ fontSize: 15, color: 'rgba(192, 5, 5, 0.86)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               {s.label}
             </div>
             <div style={{ fontSize: 9, color: s.color, marginTop: 2, opacity: 0.7 }}>{s.unit}</div>

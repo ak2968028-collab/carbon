@@ -264,9 +264,7 @@ export default function Dashboard() {
           </div>
 
           <div className="topbar-right">
-            <div className="status">
-              <span className="pulse" /> Live
-            </div>
+            
             <Link href="/" className="home-link">← Home</Link>
           </div>
         </header>
@@ -333,14 +331,7 @@ export default function Dashboard() {
                     icon="📉"
                     delay={300}
                   />
-                  {/* <KPICard
-                    label="Forest Sequestration"
-                    value={forestSeq > 0 ? `${(forestSeq/1000).toFixed(1)} t` : '—'}
-                    sub="CO₂e / year"
-                    accent="#14b8a6"
-                    icon="🌲"
-                    delay={400}
-                  /> */}
+                
                 </div>
               )}
 
