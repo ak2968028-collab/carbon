@@ -1,3 +1,4 @@
+// app/api/village/route.ts
 import { NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csvParser';
 
@@ -6,6 +7,7 @@ export async function GET() {
     const data = parseCSV('Village.csv');
     return NextResponse.json({ success: true, data });
   } catch (e) {
+    console.error('[/api/village]', e);
     return NextResponse.json({ success: false, error: String(e) }, { status: 500 });
   }
 }

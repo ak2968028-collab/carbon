@@ -1,3 +1,4 @@
+//  EmissionFactors.tsx
 'use client';
 
 export interface FactorRow { category: string; emission_factor: string; source: string; }

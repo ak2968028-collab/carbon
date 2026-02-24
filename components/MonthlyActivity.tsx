@@ -1,3 +1,4 @@
+// MonthlyActivity.tsx
 'use client';
 
 export interface MonthlyRow { vlcode: string; village_name: string; activity: string; unit: string; monthly_quantity: string; }
