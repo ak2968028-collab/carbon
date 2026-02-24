@@ -35,10 +35,11 @@ type Tab = 'overview' | 'emissions' | 'budget' | 'scenario' | 'sequestration' | 
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview',      label: 'Overview'      },
-  { id: 'emissions',     label: 'Emissions'     },
   { id: 'budget',        label: 'Carbon Budget' },
-  { id: 'scenario',      label: 'Scenarios'     },
+  { id: 'emissions',     label: 'Emissions'     },
   { id: 'sequestration', label: 'Sequestration' },
+  { id: 'scenario',      label: 'Scenarios'     },
+  
   { id: 'interventions', label: 'Interventions' },
   { id: 'activity',      label: 'Activity'      },
 ];
@@ -332,14 +333,14 @@ export default function Dashboard() {
                     icon="📉"
                     delay={300}
                   />
-                  <KPICard
+                  {/* <KPICard
                     label="Forest Sequestration"
                     value={forestSeq > 0 ? `${(forestSeq/1000).toFixed(1)} t` : '—'}
                     sub="CO₂e / year"
                     accent="#14b8a6"
                     icon="🌲"
                     delay={400}
-                  />
+                  /> */}
                 </div>
               )}
 
