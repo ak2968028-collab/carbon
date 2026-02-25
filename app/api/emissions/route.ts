@@ -2,6 +2,7 @@
 // Wide CSV cols: vlcode, village_name, Sector_Activity...
 // Component expects: { vlcode, village_name, sector, activity, annual_co2_kg }
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function GET(req: Request) {

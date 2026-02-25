@@ -1,5 +1,6 @@
 // app/api/village/route.ts
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function GET() {

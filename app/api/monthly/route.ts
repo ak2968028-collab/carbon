@@ -6,6 +6,7 @@
 //
 // Component MonthlyRow: { vlcode, village_name, activity, unit, monthly_quantity }
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 // Maps wide column → { activity label, unit }

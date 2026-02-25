@@ -7,6 +7,7 @@
 // Component ScenarioRow: { vlcode, village_name, year,
 //   business_as_usual, line_of_sight, accelerated }
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function GET(req: Request) {

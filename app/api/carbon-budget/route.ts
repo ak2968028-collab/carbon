@@ -8,6 +8,7 @@
 // Component expects: { vlcode, village_name, parameter, value, unit? }
 // It looks up by parameter.toLowerCase().includes(keyword)
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 // Map wide column → parameter label the component searches for

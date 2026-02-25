@@ -7,6 +7,7 @@
 // Component ReductionRow: { vlcode, village_name, sector, intervention,
 //   activity_reduction, emission_factor, annual_co2_reduction_kg }
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 // Maps truncated wide column → full metadata

@@ -2,6 +2,7 @@
 // Emission_Factors.csv cols: category, emission_factor, source
 // This CSV is already in the right format — no unpivoting needed.
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function GET() {

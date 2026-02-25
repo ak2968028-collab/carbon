@@ -11,6 +11,7 @@
 //   "Soil Carbon_Organic_Farming_20ha_seq_kg"
 // Component SeqAfterRow: { vlcode, village_name, type, intervention, area_added_ha, sequestration_factor, annual_co2_sequestration_kg }
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { parseCSV } from '@/lib/csvParser';
 
 export async function GET(req: Request) {
