@@ -3,13 +3,14 @@ import React from "react";
 import type { Metadata } from "next";
 
 import { Inter } from "next/font/google";
-import "./globals.css";  
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CarbonWatch – Village Carbon Dashboard",
+  title: "CarbonWatch - Village Carbon Dashboard",
   description: "Real-time carbon monitoring and intervention tracking for Indian villages",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
