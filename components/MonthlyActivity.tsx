@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface MonthlyRow {
   vlcode: string;
@@ -32,6 +32,13 @@ function truncate(text: string, max = 22): string {
 
 export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefined }) {
   const [showInfo, setShowInfo] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const safeRows = rows || [];
   const items = useMemo<ChartItem[]>(() => {
@@ -70,19 +77,19 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
   const total = items.reduce((sum, i) => sum + i.val, 0);
   const top = items[0];
 
-  const W = 860;
-  const leftPad = 170;
+  const W = isNarrow ? 620 : 860;
+  const leftPad = isNarrow ? 126 : 170;
   const rightPad = 26;
   const topPad = 16;
   const bottomPad = 40;
-  const rowH = 38;
+  const rowH = isNarrow ? 34 : 38;
   const plotW = W - leftPad - rightPad;
   const chartH = topPad + bottomPad + rowH * items.length;
   const xTicks = 5;
 
   return (
     <div className="card">
-      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ position: 'relative' }}>
           <h3
             style={{
@@ -96,7 +103,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
               gap: 8,
             }}
           >
-            Monthly Activity Grap
+            Monthly Activity Graph
             <span
               onMouseEnter={() => setShowInfo(true)}
               onMouseLeave={() => setShowInfo(false)}
@@ -128,7 +135,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
                 top: 44,
                 left: 0,
                 zIndex: 20,
-                width: 290,
+                width: isNarrow ? 240 : 290,
                 background: 'rgba(17,24,39,0.95)',
                 color: '#f3f4f6',
                 borderRadius: 10,
@@ -146,11 +153,11 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
         </div>
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', minWidth: 120 }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', minWidth: isNarrow ? 110 : 120 }}>
             <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>Total / Month</div>
             <div style={{ fontSize: 18, fontWeight: 800, color: '#111827', fontFamily: 'DM Mono, monospace' }}>{total.toLocaleString()}</div>
           </div>
-          <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', minWidth: 160 }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '8px 12px', minWidth: isNarrow ? 140 : 160 }}>
             <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>Highest Activity</div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>{truncate(top.activity, 20)}</div>
           </div>
@@ -184,7 +191,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
 
             return (
               <g key={`${item.activity}-${idx}`}>
-                <text x={12} y={barY + 15} fontSize="11" fill="#374151" fontFamily="Outfit, sans-serif">
+                <text x={8} y={barY + 15} fontSize={isNarrow ? 10 : 11} fill="#374151" fontFamily="Outfit, sans-serif">
                   {truncate(item.activity)}
                 </text>
 
@@ -193,7 +200,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
                   <title>{`${item.activity}: ${item.val.toLocaleString()} ${item.unit} (${pct.toFixed(1)}%)`}</title>
                 </rect>
 
-                <text x={Math.min(leftPad + barW + 8, W - rightPad - 2)} y={barY + 15} fontSize="10" fill="#111827" fontFamily="DM Mono, monospace">
+                <text x={Math.min(leftPad + barW + 8, W - rightPad - 2)} y={barY + 15} fontSize={isNarrow ? 9 : 10} fill="#111827" fontFamily="DM Mono, monospace">
                   {item.val.toLocaleString()} {item.unit}
                 </text>
               </g>

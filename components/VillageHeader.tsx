@@ -27,7 +27,14 @@ function AnimatedNumber({ target, suffix = '' }: { target: number; suffix?: stri
 
 export default function VillageHeader({ v }: { v: VillageRow | null | undefined }) {
   const [mounted, setMounted] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 768);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   if (!v) return null;
 
   const stats = [
@@ -46,7 +53,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
         background: 'linear-gradient(135deg, #75a6e7 0%, #7ae1e1 50%, #da7a05 100%)',
         border: '1px solid rgba(0,230,118,0.15)',
         borderRadius: 20,
-        padding: '22px 28px',
+        padding: isNarrow ? '16px 14px' : '22px 28px',
         marginBottom: 12,
         display: 'flex',
         alignItems: 'center',
@@ -81,13 +88,13 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
           }}>🌿</div>
           <div>
             <div style={{
-              fontSize: 24, fontWeight: 800,
+              fontSize: isNarrow ? 20 : 24, fontWeight: 800,
               fontFamily: 'Syne, var(--font-display, sans-serif)',
               color: '#a94008',
               letterSpacing: '-0.02em',
               lineHeight: 1.1,
             }}>{v.village_name}</div>
-            <div style={{ fontSize: 15, color: 'rgb(0, 0, 0)', marginTop: 3, letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: isNarrow ? 13 : 15, color: 'rgb(0, 0, 0)', marginTop: 3, letterSpacing: '0.02em' }}>
               {v.district} District · {v.state}
             </div>
           </div>
@@ -108,7 +115,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
       </div>
 
       {/* Stat pills */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 10 }}>
         {stats.map((s, idx) => (
           <div
             key={s.label}

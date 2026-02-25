@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
@@ -33,6 +34,14 @@ function labelFor(row: ReductionRow, index: number): string {
 }
 
 export default function InterventionReductions({ rows }: { rows: ReductionRow[] | null | undefined }) {
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   if (!rows || rows.length === 0) {
     return (
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 260 }}>
@@ -104,34 +113,34 @@ export default function InterventionReductions({ rows }: { rows: ReductionRow[] 
     barmode: 'group',
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(255,255,255,0.02)',
-    margin: { l: 72, r: 78, t: 26, b: 110 },
+    margin: { l: isNarrow ? 48 : 72, r: isNarrow ? 46 : 78, t: 26, b: isNarrow ? 96 : 110 },
     bargap: 0.28,
     bargroupgap: 0.08,
     hovermode: 'x unified',
     legend: {
       orientation: 'h',
       x: 0,
-      y: 1.18,
-      font: { color: LABEL_DARK_RED, size: 12 },
+      y: isNarrow ? 1.23 : 1.18,
+      font: { color: LABEL_DARK_RED, size: isNarrow ? 10 : 12 },
     },
     xaxis: {
-      title: { text: 'Intervention', font: { color: LABEL_DARK_RED, size: 13 } },
+      title: { text: 'Intervention', font: { color: LABEL_DARK_RED, size: isNarrow ? 11 : 13 } },
       tickangle: -22,
       automargin: true,
-      tickfont: { color: LABEL_DARK_RED, size: 11 },
+      tickfont: { color: LABEL_DARK_RED, size: isNarrow ? 9 : 11 },
       gridcolor: 'rgba(255,255,255,0.04)',
       linecolor: 'rgba(255,255,255,0.2)',
     },
     yaxis: {
-      title: { text: 'CO2 Reduction (t/yr)', font: { color: LABEL_DARK_RED, size: 12 } },
-      tickfont: { color: LABEL_DARK_RED, size: 11 },
+      title: { text: 'CO2 Reduction (t/yr)', font: { color: LABEL_DARK_RED, size: isNarrow ? 10 : 12 } },
+      tickfont: { color: LABEL_DARK_RED, size: isNarrow ? 9 : 11 },
       gridcolor: 'rgba(255,255,255,0.08)',
       zeroline: false,
       linecolor: 'rgba(255,255,255,0.2)',
     },
     yaxis2: {
-      title: { text: 'Activity / Emission Factor', font: { color: LABEL_DARK_RED, size: 12 } },
-      tickfont: { color: LABEL_DARK_RED, size: 11 },
+      title: { text: 'Activity / Emission Factor', font: { color: LABEL_DARK_RED, size: isNarrow ? 10 : 12 } },
+      tickfont: { color: LABEL_DARK_RED, size: isNarrow ? 9 : 11 },
       overlaying: 'y',
       side: 'right',
       showgrid: false,
@@ -151,7 +160,7 @@ export default function InterventionReductions({ rows }: { rows: ReductionRow[] 
 
   return (
     <div className="card fade-up">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 10, flexWrap: 'wrap' }}>
         <div>
           <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'Syne, sans-serif' }}>
             Intervention Reductions Graph
@@ -182,7 +191,7 @@ export default function InterventionReductions({ rows }: { rows: ReductionRow[] 
       <div
         style={{
           width: '100%',
-          minHeight: 430,
+          minHeight: isNarrow ? 340 : 430,
           borderRadius: 12,
           border: '1px solid rgba(255,255,255,0.08)',
           padding: 6,

@@ -104,6 +104,14 @@ function GraphBar({ label, value, max, color }: { label: string; value: number; 
 }
 
 export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[] | null | undefined; after: BudgetRow[] | null | undefined }) {
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const noData = (title: string) => (
     <div style={{
       display: 'flex',
@@ -153,7 +161,7 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isNarrow ? 240 : 280}px, 1fr))`, gap: 14 }}>
         <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ff6b6b', marginBottom: 10 }}>
             Baseline Carbon Budget
@@ -167,7 +175,7 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
                 borderRadius: 16,
                 padding: '14px 12px',
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr',
                 gap: 10,
                 alignItems: 'center',
               }}>

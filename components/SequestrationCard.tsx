@@ -15,10 +15,17 @@ const TYPE_COLORS: Record<string, { bg: string; border: string; color: string; i
 export function SequestrationCard({ before, after }: { before: SeqBeforeRow[] | null | undefined; after: SeqAfterRow[] | null | undefined }) {
   const [mounted, setMounted] = useState(false);
   const [hoverKey, setHoverKey] = useState<string | null>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 120);
     return () => clearTimeout(id);
+  }, []);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   const beforeRows = before || [];
@@ -50,14 +57,14 @@ export function SequestrationCard({ before, after }: { before: SeqBeforeRow[] | 
         <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 0', letterSpacing: '0.04em' }}>Existing sink on left, added interventions on right</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${isNarrow ? 240 : 280}px, 1fr))`, gap: 14 }}>
         <div style={{
           borderRadius: 16,
           padding: 14,
           border: '1px solid rgba(255,184,77,0.2)',
           background: 'radial-gradient(120% 120% at 10% 10%, rgba(255,184,77,0.12), rgba(255,184,77,0.04) 40%, rgba(255,255,255,0.01) 100%)',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: 12, gap: 8, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 11, color: '#ffb84d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Existing Sequestration</div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#ffd089', fontFamily: 'Syne, sans-serif', lineHeight: 1 }}>
               {(existingTotalKg / 1000).toFixed(1)}t
@@ -117,7 +124,7 @@ export function SequestrationCard({ before, after }: { before: SeqBeforeRow[] | 
         }}>
           <div style={{ position: 'absolute', top: -44, right: -30, width: 170, height: 170, borderRadius: '50%', background: 'rgba(0,230,118,0.08)', filter: 'blur(28px)', pointerEvents: 'none' }} />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 12, marginBottom: 12, position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 12, marginBottom: 12, position: 'relative', flexWrap: 'wrap' }}>
             <div>
               <div style={{ fontSize: 11, color: '#00e676', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Added Interventions</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>Area added: {addedArea.toFixed(1)} ha</div>
@@ -243,10 +250,10 @@ export function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefine
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = st.color + '30'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.04)'; }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7, gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0, flex: 1 }}>
                   <span style={{ fontSize: 16, lineHeight: 1 }}>{st.icon}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>{item.activity}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.activity}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace' }}>
@@ -306,7 +313,7 @@ export function EmissionFactors({ rows }: { rows: FactorRow[] | null | undefined
           const ss = SRC[r.source] || { bg: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)' };
           return (
             <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 10,
+              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
               padding: '10px 12px', borderRadius: 10,
               background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
               transition: 'background 0.1s',
@@ -315,7 +322,7 @@ export function EmissionFactors({ rows }: { rows: FactorRow[] | null | undefined
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
             >
               <span style={{ width: 20, textAlign: 'center', flexShrink: 0, fontSize: 14 }}>{ICONS[r.category] || 'â€¢'}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, fontWeight: 500 }}>{r.category}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, minWidth: 120, fontWeight: 500 }}>{r.category}</span>
               <span style={{ fontSize: 11, color: '#00e676', fontFamily: 'JetBrains Mono, monospace', fontWeight: 500 }}>{r.emission_factor}</span>
               <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 99, background: ss.bg, color: ss.color, fontWeight: 700, flexShrink: 0, letterSpacing: '0.04em' }}>{r.source}</span>
             </div>

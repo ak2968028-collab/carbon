@@ -1,5 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
@@ -19,6 +20,14 @@ function toNum(v: string): number {
 }
 
 export default function ScenarioProjection({ rows }: { rows: ScenarioRow[] | null | undefined }) {
+  const [isNarrow, setIsNarrow] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   if (!rows || rows.length === 0) {
     return (
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 280 }}>
@@ -70,24 +79,24 @@ export default function ScenarioProjection({ rows }: { rows: ScenarioRow[] | nul
   const layout = {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(255,255,255,0.02)',
-    margin: { l: 68, r: 24, t: 20, b: 58 },
+    margin: { l: isNarrow ? 44 : 68, r: isNarrow ? 12 : 24, t: 20, b: isNarrow ? 48 : 58 },
     hovermode: 'x unified',
     legend: {
       orientation: 'h',
       x: 0,
-      y: 1.16,
-      font: { color: LABEL_DARK, size: 12 },
+      y: isNarrow ? 1.22 : 1.16,
+      font: { color: LABEL_DARK, size: isNarrow ? 10 : 12 },
     },
     xaxis: {
-      title: { text: 'Year', font: { color: LABEL_DARK, size: 13 } },
-      tickfont: { color: LABEL_DARK, size: 12 },
+      title: { text: 'Year', font: { color: LABEL_DARK, size: isNarrow ? 11 : 13 } },
+      tickfont: { color: LABEL_DARK, size: isNarrow ? 10 : 12 },
       gridcolor: 'rgba(255,255,255,0.08)',
       zeroline: false,
       linecolor: 'rgba(255,255,255,0.2)',
     },
     yaxis: {
-      title: { text: 'CO2e (tons/year)', font: { color: LABEL_DARK, size: 13 } },
-      tickfont: { color: LABEL_DARK, size: 12 },
+      title: { text: 'CO2e (tons/year)', font: { color: LABEL_DARK, size: isNarrow ? 11 : 13 } },
+      tickfont: { color: LABEL_DARK, size: isNarrow ? 10 : 12 },
       gridcolor: 'rgba(255,255,255,0.08)',
       zeroline: false,
       linecolor: 'rgba(255,255,255,0.2)',
@@ -117,7 +126,7 @@ export default function ScenarioProjection({ rows }: { rows: ScenarioRow[] | nul
       <div
         style={{
           width: '100%',
-          minHeight: 380,
+          minHeight: isNarrow ? 320 : 380,
           borderRadius: 12,
           border: '1px solid rgba(255,255,255,0.08)',
           padding: 6,

@@ -30,10 +30,17 @@ type HoverTip = {
 export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | undefined }) {
   const [mounted, setMounted] = useState(false);
   const [tooltip, setTooltip] = useState<HoverTip | null>(null);
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     const id = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(id);
+  }, []);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 640);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   if (!rows || rows.length === 0) {
@@ -146,7 +153,7 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
           </div>
         </div>
 
-        <div style={{ position: 'relative', height: 280, border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '10px 12px 38px 46px' }}>
+        <div style={{ position: 'relative', height: isNarrow ? 260 : 280, border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: isNarrow ? '10px 8px 34px 38px' : '10px 12px 38px 46px' }}>
           {yTicks.map((tick) => {
             const tickValueTons = ((tick / 100) * maxY) / 1000;
             return (
@@ -154,9 +161,9 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
                 <div
                   style={{
                     position: 'absolute',
-                    left: 46,
+                    left: isNarrow ? 38 : 46,
                     right: 12,
-                    bottom: `${38 + (tick / 100) * 232}px`,
+                    bottom: `${(isNarrow ? 34 : 38) + (tick / 100) * (isNarrow ? 216 : 232)}px`,
                     borderTop: '1px solid rgba(255,255,255,0.08)',
                   }}
                 />
@@ -166,8 +173,8 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
                   onMouseLeave={() => setTooltip(null)}
                   style={{
                     position: 'absolute',
-                    left: 8,
-                    bottom: `${30 + (tick / 100) * 232}px`,
+                    left: isNarrow ? 6 : 8,
+                    bottom: `${(isNarrow ? 26 : 30) + (tick / 100) * (isNarrow ? 216 : 232)}px`,
                     fontSize: 11,
                     color: LABEL_DARK,
                     cursor: 'default',
@@ -180,21 +187,21 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
             );
           })}
 
-          <div style={{ position: 'absolute', left: 46, right: 12, bottom: 38, top: 10, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: 8 }}>
+          <div style={{ position: 'absolute', left: isNarrow ? 38 : 46, right: 12, bottom: isNarrow ? 34 : 38, top: 10, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: isNarrow ? 4 : 8 }}>
             {activities.map((a) => {
               const activityHeight = (a.value / maxY) * 100;
               const avgHeight = (a.sectorAvg / maxY) * 100;
               const sectorColor = SECTOR_COLORS[a.sector] || '#8b9ab0';
 
               return (
-                <div key={a.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', width: 64 }}>
+                <div key={a.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', width: isNarrow ? 50 : 64 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: '100%', width: '100%', justifyContent: 'center' }}>
                     <div
                       onMouseEnter={(e) => showTooltip(e, a.label, 'Activity Emission', a.value / 1000)}
                       onMouseMove={moveTooltip}
                       onMouseLeave={() => setTooltip(null)}
                       style={{
-                        width: 20,
+                        width: isNarrow ? 16 : 20,
                         height: mounted ? `${Math.max(activityHeight, 2)}%` : '0%',
                         background: '#4d9fff',
                         borderRadius: '6px 6px 0 0',
@@ -207,7 +214,7 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
                       onMouseMove={moveTooltip}
                       onMouseLeave={() => setTooltip(null)}
                       style={{
-                        width: 20,
+                        width: isNarrow ? 16 : 20,
                         height: mounted ? `${Math.max(avgHeight, 2)}%` : '0%',
                         background: '#ff6b6b',
                         borderRadius: '6px 6px 0 0',
@@ -220,7 +227,7 @@ export default function EmissionsChart({ rows }: { rows: EmissionRow[] | null | 
                     onMouseEnter={(e) => showTooltip(e, shortLabel(a.label), 'X Axis Category', a.value / 1000)}
                     onMouseMove={moveTooltip}
                     onMouseLeave={() => setTooltip(null)}
-                    style={{ marginTop: 8, fontSize: 12, color: LABEL_DARK, fontWeight: 700, textAlign: 'center', lineHeight: 1.1, cursor: 'default' }}
+                    style={{ marginTop: 8, fontSize: isNarrow ? 10 : 12, color: LABEL_DARK, fontWeight: 700, textAlign: 'center', lineHeight: 1.1, cursor: 'default' }}
                   >
                     {shortLabel(a.label)}
                   </div>
