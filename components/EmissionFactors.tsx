@@ -27,16 +27,16 @@ export default function EmissionFactors({ rows }: { rows: FactorRow[] | null | u
     <div className="card">
       <div style={{ marginBottom: 20 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'Outfit, sans-serif' }}>Emission Factors</h3>
-        <p style={{ fontSize: 12, color: '#9ca3af', margin: '3px 0 0' }}>Reference values used in calculations</p>
+        <p style={{ fontSize: 12, color: '#05193a', margin: '3px 0 0' }}>Reference values used in calculations</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {rows.map((r, i) => {
           const ss = SRC[r.source] || { bg: '#f9fafb', color: '#374151' };
           return (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '9px 10px', borderRadius: 8, background: i % 2 === 0 ? '#fafafa' : 'white' }}>
-              <span style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>{ICONS[r.category] || '•'}</span>
-              <span style={{ fontSize: 13, color: '#374151', flex: 1, minWidth: 110, fontWeight: 500 }}>{r.category}</span>
-              <span style={{ fontSize: 11, color: '#15803d', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>{r.emission_factor}</span>
+              <span style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>{ICONS[r.category] || 'ï¿½'}</span>
+              <span style={{ fontSize: 13, color: '#0c244b', flex: 1, minWidth: 110, fontWeight: 500 }}>{r.category}</span>
+              <span style={{ fontSize: 11, color: '#03240f', fontFamily: 'DM Mono, monospace', fontWeight: 500 }}>{r.emission_factor}</span>
               <span style={{ fontSize: 10, padding: '3px 8px', borderRadius: 99, background: ss.bg, color: ss.color, fontWeight: 600, flexShrink: 0 }}>{r.source}</span>
             </div>
           );

@@ -205,17 +205,18 @@ export function SequestrationCard({ before, after }: { before: SeqBeforeRow[] | 
   );
 }
 
-// â”€â”€ MONTHLY ACTIVITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── MONTHLY ACTIVITY ──────────────────────────────────────────────────────
 export interface MonthlyRow { vlcode: string; village_name: string; activity: string; unit: string; monthly_quantity: string; }
 
-const ACTIVITY_STYLE: Record<string, { icon: string; color: string; bg: string }> = {
-  'LPG Consumption':         { icon: 'ðŸ”¥', color: '#ff7b4d', bg: 'rgba(255,123,77,0.06)'  },
-  'Firewood Consumption':    { icon: 'ðŸªµ', color: '#b89a7a', bg: 'rgba(184,154,122,0.06)' },
-  'Electricity Consumption': { icon: 'âš¡', color: '#ffd24d', bg: 'rgba(255,210,77,0.06)'  },
-  'Solid Waste':             { icon: 'ðŸ—‘ï¸', color: '#b084ff', bg: 'rgba(176,132,255,0.06)' },
-  'Petrol Consumption':      { icon: 'â›½', color: '#ff4d4d', bg: 'rgba(255,77,77,0.06)'   },
-  'Vehicles (2-wheelers)':   { icon: 'ðŸ›µ', color: '#4d9fff', bg: 'rgba(77,159,255,0.06)'  },
-  'Livestock':               { icon: 'ðŸ„', color: '#00e676', bg: 'rgba(0,230,118,0.05)'   },
+// Color-coded dot badges instead of emoji icons
+const ACTIVITY_STYLE: Record<string, { color: string; bg: string; badge: string }> = {
+  'LPG Consumption':         { color: '#ff7b4d', bg: 'rgba(255,123,77,0.06)',   badge: 'LPG'  },
+  'Firewood Consumption':    { color: '#b89a7a', bg: 'rgba(184,154,122,0.06)',  badge: 'FW'   },
+  'Electricity Consumption': { color: '#ffd24d', bg: 'rgba(255,210,77,0.06)',   badge: 'ELC'  },
+  'Solid Waste':             { color: '#b084ff', bg: 'rgba(176,132,255,0.06)',  badge: 'SW'   },
+  'Petrol Consumption':      { color: '#ff4d4d', bg: 'rgba(255,77,77,0.06)',    badge: 'PTR'  },
+  'Vehicles (2-wheelers)':   { color: '#4d9fff', bg: 'rgba(77,159,255,0.06)',   badge: '2W'   },
+  'Livestock':               { color: '#00e676', bg: 'rgba(0,230,118,0.05)',    badge: 'LS'   },
 };
 
 export function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefined }) {
@@ -226,48 +227,102 @@ export function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefine
     return (
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 240 }}>
         <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: 36, marginBottom: 10, opacity: 0.3 }}>ðŸ“…</div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No monthly data</div>
         </div>
       </div>
     );
   }
 
-  const items = rows.map(r => ({ ...r, val: parseFloat(r.monthly_quantity || '0') }));
+  const items = rows
+    .map(r => ({ ...r, val: parseFloat(r.monthly_quantity || '0') || 0 }))
+    .filter(i => i.val > 0)
+    .sort((a, b) => b.val - a.val);
+
   const max = Math.max(...items.map(i => i.val), 1);
+  const total = items.reduce((s, i) => s + i.val, 0);
 
   return (
     <div className="card fade-up">
-      <div style={{ marginBottom: 22 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'Syne, sans-serif' }}>Monthly Activity</h3>
-        <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', letterSpacing: '0.04em' }}>Resource consumption per month</p>
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'Syne, sans-serif' }}>Monthly Activity</h3>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', letterSpacing: '0.04em' }}>Resource consumption per month</p>
+        </div>
+        <div style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 10,
+          padding: '7px 12px',
+          textAlign: 'center',
+          flexShrink: 0,
+        }}>
+          <div style={{ fontSize: 9, color: '#334155', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Activities</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1 }}>{items.length}</div>
+        </div>
       </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
         {items.map((item, i) => {
-          const st = ACTIVITY_STYLE[item.activity] || { icon: 'â€¢', color: '#8b9ab0', bg: 'rgba(255,255,255,0.03)' };
+          const st = ACTIVITY_STYLE[item.activity] || { color: '#8b9ab0', bg: 'rgba(255,255,255,0.03)', badge: '??' };
+          const pct = (item.val / total) * 100;
+
           return (
-            <div key={i} style={{ background: st.bg, borderRadius: 12, padding: '11px 14px', border: '1px solid rgba(255,255,255,0.04)', transition: 'all 0.15s' }}
+            <div
+              key={i}
+              style={{
+                background: st.bg,
+                borderRadius: 12,
+                padding: '11px 14px',
+                border: '1px solid rgba(255,255,255,0.04)',
+                transition: 'all 0.15s',
+              }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = st.color + '30'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.04)'; }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7, gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0, flex: 1 }}>
-                  <span style={{ fontSize: 16, lineHeight: 1 }}>{st.icon}</span>
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.activity}</span>
+                  {/* Colored text badge instead of emoji */}
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 30,
+                    height: 20,
+                    borderRadius: 5,
+                    fontSize: 9,
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    color: st.color,
+                    border: `1px solid ${st.color}44`,
+                    background: `${st.color}14`,
+                    flexShrink: 0,
+                    fontFamily: 'JetBrains Mono, monospace',
+                  }}>
+                    {st.badge}
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {item.activity}
+                  </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexShrink: 0 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'JetBrains Mono, monospace' }}>
                     {item.val.toLocaleString()}
                   </span>
                   <span style={{ fontSize: 9, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{item.unit}</span>
+                  <span style={{ fontSize: 10, color: st.color, fontFamily: 'JetBrains Mono, monospace', fontWeight: 600, marginLeft: 4 }}>
+                    {pct.toFixed(0)}%
+                  </span>
                 </div>
               </div>
+
+              {/* Progress bar */}
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 99, height: 4 }}>
                 <div style={{
                   background: `linear-gradient(90deg, ${st.color}80, ${st.color})`,
-                  height: 4, borderRadius: 99,
+                  height: 4,
+                  borderRadius: 99,
                   width: mounted ? `${(item.val / max) * 100}%` : '0%',
-                  transition: `width ${0.6 + i * 0.1}s cubic-bezier(0.4,0,0.2,1)`,
+                  transition: `width ${0.6 + i * 0.08}s cubic-bezier(0.4,0,0.2,1)`,
                   boxShadow: `0 0 6px ${st.color}40`,
                 }} />
               </div>
@@ -279,10 +334,20 @@ export function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefine
   );
 }
 
-// â”€â”€ EMISSION FACTORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── EMISSION FACTORS ──────────────────────────────────────────────────────
 export interface FactorRow { category: string; emission_factor: string; source: string; }
 
-const ICONS: Record<string, string> = { LPG: 'ðŸ”¥', Firewood: 'ðŸªµ', Electricity: 'âš¡', 'Petrol/Diesel': 'â›½', Waste: 'ðŸ—‘ï¸', Rice: 'ðŸŒ¾', Wheat: 'ðŸŒ¾' };
+// Short text labels instead of emoji
+const CATEGORY_BADGE: Record<string, { label: string; color: string }> = {
+  LPG:            { label: 'LPG',  color: '#ff7b4d' },
+  Firewood:       { label: 'FW',   color: '#b89a7a' },
+  Electricity:    { label: 'ELC',  color: '#ffd24d' },
+  'Petrol/Diesel':{ label: 'PTR',  color: '#ff4d4d' },
+  Waste:          { label: 'WST',  color: '#b084ff' },
+  Rice:           { label: 'RCE',  color: '#00e676' },
+  Wheat:          { label: 'WHT',  color: '#4d9fff' },
+};
+
 const SRC: Record<string, { bg: string; color: string }> = {
   'IPCC 2006': { bg: 'rgba(77,159,255,0.1)',  color: '#4d9fff' },
   'CEA India': { bg: 'rgba(255,123,77,0.1)',  color: '#ff7b4d' },
@@ -295,7 +360,6 @@ export function EmissionFactors({ rows }: { rows: FactorRow[] | null | undefined
     return (
       <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 180 }}>
         <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: 32, marginBottom: 10, opacity: 0.3 }}>ðŸ§ª</div>
           <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>No emission factors</div>
         </div>
       </div>
@@ -304,24 +368,45 @@ export function EmissionFactors({ rows }: { rows: FactorRow[] | null | undefined
 
   return (
     <div className="card fade-up">
-      <div style={{ marginBottom: 22 }}>
+      <div style={{ marginBottom: 18 }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'Syne, sans-serif' }}>Emission Factors</h3>
         <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '4px 0 0', letterSpacing: '0.04em' }}>Reference values used in calculations</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {rows.map((r, i) => {
           const ss = SRC[r.source] || { bg: 'rgba(255,255,255,0.04)', color: 'var(--text-secondary)' };
+          const cb = CATEGORY_BADGE[r.category] || { label: r.category.slice(0, 3).toUpperCase(), color: '#8b9ab0' };
           return (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-              padding: '10px 12px', borderRadius: 10,
-              background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
-              transition: 'background 0.1s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
+            <div
+              key={i}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                padding: '10px 12px', borderRadius: 10,
+                background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                transition: 'background 0.1s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent'; }}
             >
-              <span style={{ width: 20, textAlign: 'center', flexShrink: 0, fontSize: 14 }}>{ICONS[r.category] || 'â€¢'}</span>
+              {/* Text badge instead of emoji */}
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 20,
+                borderRadius: 5,
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                color: cb.color,
+                border: `1px solid ${cb.color}44`,
+                background: `${cb.color}14`,
+                flexShrink: 0,
+                fontFamily: 'JetBrains Mono, monospace',
+              }}>
+                {cb.label}
+              </span>
               <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1, minWidth: 120, fontWeight: 500 }}>{r.category}</span>
               <span style={{ fontSize: 11, color: '#00e676', fontFamily: 'JetBrains Mono, monospace', fontWeight: 500 }}>{r.emission_factor}</span>
               <span style={{ fontSize: 9, padding: '3px 9px', borderRadius: 99, background: ss.bg, color: ss.color, fontWeight: 700, flexShrink: 0, letterSpacing: '0.04em' }}>{r.source}</span>

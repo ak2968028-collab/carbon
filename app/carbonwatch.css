@@ -36,7 +36,7 @@
 .slide-up  { animation: rise 0.9s cubic-bezier(.22,1,.36,1) both; }
 .slide-up2 { animation: rise 0.9s 0.2s cubic-bezier(.22,1,.36,1) both; }
 
-.font-display { font-family: 'Syne', sans-serif; }
+.font-display { font-family: 'Arial' }
 
 .nav-scrolled {
   background: rgba(5,13,26,0.92) !important;
@@ -50,7 +50,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: filter 0.2s, transform 0.15s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'TT Hoves';
   display: inline-block;
 }
 .btn-orange:hover { filter: brightness(1.15); transform: translateY(-1px); }
@@ -61,7 +61,7 @@
   border: 1px solid rgba(255,255,255,0.18);
   font-weight: 600;
   transition: background 0.2s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'TT Hoves';
 }
 .btn-outline-w:hover { background: rgba(255,255,255,0.1); }
 
@@ -97,7 +97,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'TT Hoves';
 }
 
 .glow-dot {

@@ -38,8 +38,9 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'budget', label: 'Carbon Budget' },
   { id: 'emissions', label: 'Emissions' },
   { id: 'sequestration', label: 'Sequestration' },
-  { id: 'scenario', label: 'Scenarios' },
   { id: 'interventions', label: 'Interventions' },
+  { id: 'scenario', label: 'Scenarios' },
+  
   { id: 'activity', label: 'Activity' },
 ];
 

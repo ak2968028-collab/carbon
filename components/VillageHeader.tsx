@@ -47,7 +47,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
   ];
 
   return (
-    <div style={{ marginBottom: 28, fontFamily: 'var(--font-body, Space Grotesk, sans-serif)' }}>
+    <div style={{ marginBottom: 28, fontFamily: 'Times New Roman' }}>
       {/* Banner */}
       <div style={{
         background: 'linear-gradient(135deg, #75a6e7 0%, #7ae1e1 50%, #da7a05 100%)',
@@ -89,7 +89,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
           <div>
             <div style={{
               fontSize: isNarrow ? 20 : 24, fontWeight: 800,
-              fontFamily: 'Syne, var(--font-display, sans-serif)',
+              fontFamily: 'TT Hoves',
               color: '#a94008',
               letterSpacing: '-0.02em',
               lineHeight: 1.1,
@@ -107,7 +107,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
             color: 'rgba(147, 12, 12, 0.5)',
             fontSize: 10, fontWeight: 600,
             padding: '5px 12px', borderRadius: 99,
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: 'TT Hoves',
             letterSpacing: '0.08em',
           }}>VL · {v.vlcode}</span>
 
@@ -138,7 +138,7 @@ export default function VillageHeader({ v }: { v: VillageRow | null | undefined 
             <div style={{
               fontSize: 17, fontWeight: 700,
               color: '#000000',
-              fontFamily: 'Syne, sans-serif',
+              fontFamily: 'TT Hoves',
               letterSpacing: '-0.01em',
             }}>
               {mounted
