@@ -1,13 +1,19 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export interface BudgetRow { vlcode: string; village_name: string; parameter: string; value: string; unit?: string; }
+export interface BudgetRow {
+  vlcode: string;
+  village_name: string;
+  parameter: string;
+  value: string;
+  unit?: string;
+}
 
 const FONT = "'Times New Roman', Times, Georgia, serif";
 const MONO = "'JetBrains Mono', 'Courier New', monospace";
 
-function getVal(rows: BudgetRow[], param: string): number {
-  return parseFloat(rows.find(r => r.parameter?.toLowerCase().includes(param.toLowerCase()))?.value || '0') || 0;
+function getVal(rows: BudgetRow[] | null | undefined = [], param: string): number {
+  return parseFloat(rows?.find(r => r.parameter?.toLowerCase().includes(param.toLowerCase()))?.value || '0') || 0;
 }
 
 interface Slice { label: string; value: number; color: string; dark: string; }
@@ -23,11 +29,26 @@ function donutPath(cx: number, cy: number, outerR: number, innerR: number, start
   const is_ = polarXY(cx, cy, innerR, endDeg);
   const ie = polarXY(cx, cy, innerR, startDeg);
   const large = endDeg - startDeg > 180 ? 1 : 0;
-  return [`M ${os.x} ${os.y}`, `A ${outerR} ${outerR} 0 ${large} 1 ${oe.x} ${oe.y}`,
-          `L ${is_.x} ${is_.y}`, `A ${innerR} ${innerR} 0 ${large} 0 ${ie.x} ${ie.y}`, 'Z'].join(' ');
+  return [
+    `M ${os.x} ${os.y}`,
+    `A ${outerR} ${outerR} 0 ${large} 1 ${oe.x} ${oe.y}`,
+    `L ${is_.x} ${is_.y}`,
+    `A ${innerR} ${innerR} 0 ${large} 0 ${ie.x} ${ie.y}`,
+    'Z'
+  ].join(' ');
 }
 
-function DonutChart({ slices, size = 248 }: { slices: Slice[]; size?: number }) {
+function DonutChart({
+  slices,
+  size = 220,
+  title,
+  centerUnit = 't',
+}: {
+  slices: Slice[];
+  size?: number;
+  title: string;
+  centerUnit?: string;
+}) {
   const [hov, setHov] = useState<number | null>(null);
   const [anim, setAnim] = useState(0);
 
@@ -36,101 +57,114 @@ function DonutChart({ slices, size = 248 }: { slices: Slice[]; size?: number }) 
       let s: number | null = null;
       const tick = (ts: number) => {
         if (!s) s = ts;
-        const p = Math.min((ts - s) / 1000, 1);
-        setAnim(1 - Math.pow(1 - p, 3));
+        const p = Math.min((ts - s) / 900, 1);
+        setAnim(p); // eased in-out
         if (p < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-    }, 80);
+    }, 100);
     return () => clearTimeout(t);
-  }, []);
+  }, [slices]);
 
-  const total = slices.reduce((s, sl) => s + sl.value, 0);
-  if (total <= 0) return null;
+  const total = slices.reduce((sum, sl) => sum + sl.value, 0);
+  if (total <= 0) {
+    return (
+      <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+        No Data
+      </div>
+    );
+  }
 
-  const cx = size / 2, cy = size / 2;
-  const outerR = size / 2 - 12;
-  const innerR = outerR - Math.round(outerR * 0.38);
-  const GAP = slices.length > 1 ? 2 : 0;
+  const cx = size / 2;
+  const cy = size / 2;
+  const outerR = size / 2 - 14;
+  const innerR = outerR * 0.62;
+  const GAP = slices.length > 1 ? 1.8 : 0;
 
   let angle = 0;
   const built = slices.map((sl, i) => {
     const span = (sl.value / total) * 360 * anim;
-    const start = angle + GAP / 2, end = angle + span - GAP / 2;
+    const start = angle + GAP / 2;
+    const end = angle + span - GAP / 2;
     angle += span;
     const mid = (start + end) / 2;
-    const push = polarXY(cx, cy, hov === i ? 9 : 0, mid);
+    const push = polarXY(cx, cy, hov === i ? 8 : 0, mid);
     return { sl, i, start, end, mid, push };
   });
 
   return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block', overflow: 'visible' }}>
-        <defs>
-        {slices.map((sl, i) => (
-          <radialGradient key={i} id={`g${i}`} cx="40%" cy="35%" r="65%">
-            <stop offset="0%"   stopColor={sl.color} stopOpacity="0.7" />
-            <stop offset="50%"  stopColor={sl.color} stopOpacity="1" />
-            <stop offset="100%" stopColor={sl.dark}  stopOpacity="1" />
-          </radialGradient>
-        ))}
-        <radialGradient id="hole" cx="50%" cy="40%" r="60%">
-          <stop offset="0%"   stopColor="#9db3dd" />
-          <stop offset="100%" stopColor="#bec9e2" />
-        </radialGradient>
-        <filter id="sf"><feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(0,0,0,0.55)" /></filter>
-        <filter id="gf" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="3" result="b" />
-          <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        </defs>
+    <div style={{ position: 'relative', width: size, height: size + 20, flexShrink: 0 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: '#1e293b', textAlign: 'center', marginBottom: 6, fontFamily: FONT }}>
+        {title}
+      </div>
 
-        {/* Track ring */}
-        <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="rgba(255,255,255,0.035)" strokeWidth={outerR - innerR} />
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
+        <defs>
+          {slices.map((sl, i) => (
+            <radialGradient key={i} id={`g${i}`} cx="40%" cy="35%" r="70%">
+              <stop offset="0%" stopColor={sl.color} stopOpacity="0.75" />
+              <stop offset="45%" stopColor={sl.color} stopOpacity="1" />
+              <stop offset="100%" stopColor={sl.dark} stopOpacity="1" />
+            </radialGradient>
+          ))}
+          <radialGradient id="hole" cx="50%" cy="45%" r="65%">
+            <stop offset="0%" stopColor="#e2e8f0" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </radialGradient>
+        </defs>
 
         {/* Slices */}
         {built.map(({ sl, i, start, end, push }) => {
           if (end <= start) return null;
           const isH = hov === i;
           return (
-            <g key={i}
-              style={{ transform: `translate(${push.x - cx}px,${push.y - cy}px)`, transformOrigin: `${cx}px ${cy}px`, transition: 'transform 0.2s cubic-bezier(0.4,0,0.2,1)', cursor: 'pointer' }}
-              onMouseEnter={() => setHov(i)} onMouseLeave={() => setHov(null)}
-              filter="url(#sf)"
+            <g
+              key={i}
+              style={{
+                transform: `translate(${push.x - cx}px, ${push.y - cy}px)`,
+                transformOrigin: `${cx}px ${cy}px`,
+                transition: 'transform 0.25s ease-out',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={() => setHov(i)}
+              onMouseLeave={() => setHov(null)}
             >
               <path
                 d={donutPath(cx, cy, outerR, innerR, start, end)}
                 fill={`url(#g${i})`}
-                opacity={!hov || isH ? 1 : 0.35}
-                stroke="rgba(0,0,0,0.3)" strokeWidth="0.7"
-                style={{ transition: 'opacity 0.18s' }}
+                opacity={!hov || isH ? 1 : 0.38}
+                stroke="#fff"
+                strokeWidth="0.6"
+                style={{ transition: 'opacity 0.2s' }}
               />
-              {isH && (
-                <path
-                  d={`M ${polarXY(cx,cy,outerR,start+GAP).x} ${polarXY(cx,cy,outerR,start+GAP).y} A ${outerR} ${outerR} 0 ${end-start>180?1:0} 1 ${polarXY(cx,cy,outerR,end-GAP).x} ${polarXY(cx,cy,outerR,end-GAP).y}`}
-                  fill="none" stroke={sl.color} strokeWidth="2.5" strokeLinecap="round" opacity="0.75" filter="url(#gf)"
-                />
-              )}
             </g>
           );
         })}
 
-        {/* Hole */}
+        {/* Center hole */}
         <circle cx={cx} cy={cy} r={innerR} fill="url(#hole)" />
-        <circle cx={cx} cy={cy} r={innerR} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-        <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
 
-        {/* Center text - Darker and bolder */}
+        {/* Center text */}
         {hov !== null && slices[hov] ? (
           <>
-            <text x={cx} y={cy - 12} textAnchor="middle" fill="#0f172a" fontSize="11" fontWeight="800" fontFamily={FONT}>{slices[hov].label}</text>
-            <text x={cx} y={cy + 9}  textAnchor="middle" fill="#0f172a" fontSize="22" fontWeight="900" fontFamily={FONT}>{((slices[hov].value / total) * 100).toFixed(1)}%</text>
-            <text x={cx} y={cy + 26} textAnchor="middle" fill="#334155" fontSize="12" fontFamily={MONO} fontWeight="700">{(slices[hov].value / 1000).toFixed(2)}t</text>
+            <text x={cx} y={cy - 10} textAnchor="middle" fill="#1e293b" fontSize="13" fontWeight="700" fontFamily={FONT}>
+              {slices[hov].label}
+            </text>
+            <text x={cx} y={cy + 12} textAnchor="middle" fill="#0f172a" fontSize="22" fontWeight="900" fontFamily={MONO}>
+              {(slices[hov].value / 1000).toFixed(1)}
+            </text>
+            <text x={cx} y={cy + 30} textAnchor="middle" fill="#64748b" fontSize="11" fontFamily={MONO}>
+              {centerUnit}
+            </text>
           </>
         ) : (
           <>
-            <text x={cx} y={cy - 5}  textAnchor="middle" fill="#475569" fontSize="11" fontFamily={FONT} fontWeight="600" fontStyle="italic">Total</text>
-            <text x={cx} y={cy + 14} textAnchor="middle" fill="#0f172a" fontSize="21" fontWeight="900" fontFamily={FONT} letterSpacing="-0.03em">{(total / 1000).toFixed(1)}t</text>
+            <text x={cx} y={cy + 8} textAnchor="middle" fill="#334155" fontSize="26" fontWeight="900" fontFamily={MONO}>
+              {(total / 1000).toFixed(1)}
+            </text>
+            <text x={cx} y={cy + 26} textAnchor="middle" fill="#64748b" fontSize="11" fontFamily={MONO}>
+              {centerUnit}
+            </text>
           </>
         )}
       </svg>
@@ -138,130 +172,150 @@ function DonutChart({ slices, size = 248 }: { slices: Slice[]; size?: number }) 
   );
 }
 
-function CoverageArc({ pct }: { pct: number }) {
-  const r = 22, sw = 5, sz = (r + sw) * 2 + 4;
-  const circ = 2 * Math.PI * r, dash = (Math.min(pct, 100) / 100) * circ;
-  const col = pct < 15 ? '#ff4d4d' : pct < 35 ? '#ffd24d' : '#00c853';
+function LegendItem({ slice, percent, tons }: { slice: Slice; percent: number; tons: number }) {
   return (
-    <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`}>
-      <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={sw} />
-      <circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={col} strokeWidth={sw}
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        transform={`rotate(-90 ${sz/2} ${sz/2})`} style={{ transition: 'stroke-dasharray 1s ease' }} />
-      <text x={sz/2} y={sz/2+4} textAnchor="middle" fill={col} fontSize="10" fontWeight="800" fontFamily={MONO}>{pct.toFixed(0)}%</text>
-    </svg>
-  );
-}
-
-function StatRow({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid rgba(15,23,42,0.2)' }}>
-      <span style={{ fontSize: 13, color: '#334155', fontFamily: FONT, fontWeight: 600 }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 800, color: color || '#1e293b', fontFamily: MONO }}>{value}</span>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '6px 10px',
+        borderRadius: 8,
+        background: 'rgba(255,255,255,0.5)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        fontSize: 13,
+      }}
+    >
+      <div
+        style={{
+          width: 14,
+          height: 14,
+          borderRadius: 4,
+          background: `linear-gradient(135deg, ${slice.color}, ${slice.dark})`,
+          boxShadow: `0 1px 4px ${slice.color}60`,
+        }}
+      />
+      <span style={{ flex: 1, color: '#334155', fontWeight: 600, fontFamily: FONT }}>{slice.label}</span>
+      <span style={{ color: slice.color, fontWeight: 800, fontFamily: MONO, minWidth: 50, textAlign: 'right' }}>
+        {percent.toFixed(1)}%
+      </span>
+      <span style={{ color: '#475569', fontFamily: MONO, fontWeight: 600, minWidth: 60, textAlign: 'right' }}>
+        {tons.toFixed(1)} t
+      </span>
     </div>
   );
 }
 
 export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[] | null | undefined; after: BudgetRow[] | null | undefined }) {
   const [isNarrow, setIsNarrow] = useState(false);
-  useEffect(() => { const fn = () => setIsNarrow(window.innerWidth < 680); fn(); window.addEventListener('resize', fn); return () => window.removeEventListener('resize', fn); }, []);
+  useEffect(() => {
+    const fn = () => setIsNarrow(window.innerWidth < 720);
+    fn();
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
 
-  const totalEm  = getVal(before || [], 'total emission');
-  const totalSeq = getVal(before || [], 'total sequestration');
-  const netEm    = getVal(before || [], 'net emission');
-  const perCap   = getVal(before || [], 'per capita');
-  const monthly  = getVal(before || [], 'monthly');
-  const coverage = totalEm > 0 ? (totalSeq / totalEm) * 100 : 0;
-  const prevNet  = getVal(after || [], 'previous net') || netEm;
-  const newNet   = getVal(after || [], 'new net');
-  const pct      = getVal(after || [], 'percentage');
-  const emRed    = getVal(after || [], 'emission reduction');
-  const seqInc   = getVal(after || [], 'sequestration increase');
-  const impact   = getVal(after || [], 'total impact');
-  const hasB = !!(before && before.length > 0);
-  const hasA = !!(after  && after.length > 0);
+  // ── Baseline values ─────────────────────────────────────
+  const totalEm   = getVal(before, 'total emission');
+  const totalSeq  = getVal(before, 'total sequestration');
+  const netEm     = getVal(before, 'net emission');
+  const coverage  = totalEm > 0 ? (totalSeq / totalEm) * 100 : 0;
 
-  const slices: Slice[] = [];
-  if (hasB && totalEm > 0) {
-    const seqP = Math.max(totalSeq, 0), netP = Math.max(netEm, 0), remP = Math.max(totalEm - netP - seqP, 0);
-    if (seqP > 0) slices.push({ label: 'Sequestered',    value: seqP, color: '#00c853', dark: '#006e24' });
-    if (netP > 0) slices.push({ label: 'Net Emission',   value: netP, color: '#c62828', dark: '#7f0000' });
-    if (remP > 0) slices.push({ label: 'Gross Remaining',value: remP, color: '#e65100', dark: '#7f2500' });
+  // ── After values ────────────────────────────────────────
+  const prevNet   = getVal(after, 'previous net') || netEm;
+  const newNet    = getVal(after, 'new net');
+  const emRed     = getVal(after, 'emission reduction');
+  const seqInc    = getVal(after, 'sequestration increase');
+
+  // ── Slices for BEFORE ───────────────────────────────────
+  const beforeSlices: Slice[] = [];
+  if (totalEm > 0) {
+    const seqP  = Math.max(totalSeq, 0);
+    const netP  = Math.max(netEm, 0);
+    const remP  = Math.max(totalEm - seqP - netP, 0);
+
+    if (seqP  > 0) beforeSlices.push({ label: 'Sequestered',     value: seqP,  color: '#22c55e', dark: '#15803d' });
+    if (netP   > 0) beforeSlices.push({ label: 'Net Emission',    value: netP,  color: '#ef4444', dark: '#b91c1c' });
+    if (remP   > 0) beforeSlices.push({ label: 'Gross Remaining', value: remP,  color: '#f97316', dark: '#c2410c' });
   }
-  if (hasA) {
-    if (emRed  > 0) slices.push({ label: 'Em. Reduced',   value: emRed,  color: '#1565c0', dark: '#082767' });
-    if (seqInc > 0) slices.push({ label: 'Seq. Increase', value: seqInc, color: '#00838f', dark: '#00424a' });
-    if (newNet > 0) slices.push({ label: 'New Net',        value: newNet, color: '#6a1b9a', dark: '#2e0050' });
-  }
-  if (slices.length === 0) slices.push({ label: 'No Data', value: 1, color: '#37474f', dark: '#1c2a30' });
+  if (beforeSlices.length === 0) beforeSlices.push({ label: 'No Data', value: 1, color: '#9ca3af', dark: '#6b7280' });
 
-  const total = slices.reduce((s, sl) => s + sl.value, 0);
+  // ── Slices for AFTER ────────────────────────────────────
+  const afterSlices: Slice[] = [];
+  if (emRed  > 0) afterSlices.push({ label: 'Reduced',          value: emRed,  color: '#3b82f6', dark: '#1d4ed8' });
+  if (seqInc > 0) afterSlices.push({ label: 'Seq. Increase',    value: seqInc, color: '#06b6d4', dark: '#0891b2' });
+  if (newNet > 0) afterSlices.push({ label: 'New Net Emission', value: newNet, color: '#8b5cf6', dark: '#6d28d9' });
+  if (afterSlices.length === 0) afterSlices.push({ label: 'No Change', value: 1, color: '#9ca3af', dark: '#6b7280' });
+
+  const layout = isNarrow ? 'column' : 'row';
 
   return (
-    <div className="card" style={{ height: '100%', background: 'rgba(255, 255, 255, 0.95)', border: '1px solid rgba(0,0,0,0.08)' }}>
-      <div style={{ marginBottom: 18 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: FONT, letterSpacing: '-0.01em' }}>Carbon Budget</h3>
-        <p style={{ fontSize: 13, color: '#475569', margin: '4px 0 0', fontFamily: FONT, fontWeight: 500, fontStyle: 'italic' }}>Baseline & after-action breakdown</p>
+    <div className="card" style={{ height: '100%', background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 16, padding: 20 }}>
+      <h3 style={{ margin: 0, fontSize: 21, fontWeight: 800, color: '#0f172a', fontFamily: FONT }}>Carbon Budget Comparison</h3>
+      <p style={{ margin: '4px 0 20px', color: '#64748b', fontSize: 13.5, fontFamily: FONT }}>Before vs After Intervention</p>
+
+      <div style={{ display: 'flex', flexDirection: layout, gap: 32, justifyContent: 'center', marginBottom: 28 }}>
+        {/* Before Chart + Legend */}
+        <div style={{ flex: 1, maxWidth: 320 }}>
+          <DonutChart slices={beforeSlices} title="Baseline (Before)" size={240} />
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {beforeSlices.map((sl, i) => (
+              <LegendItem
+                key={i}
+                slice={sl}
+                percent={(sl.value / beforeSlices.reduce((a, b) => a + b.value, 0)) * 100}
+                tons={sl.value / 1000}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* After Chart + Legend */}
+        <div style={{ flex: 1, maxWidth: 320 }}>
+          <DonutChart slices={afterSlices} title="After Action" size={240} />
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {afterSlices.map((sl, i) => (
+              <LegendItem
+                key={i}
+                slice={sl}
+                percent={(sl.value / afterSlices.reduce((a, b) => a + b.value, 0)) * 100}
+                tons={sl.value / 1000}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: 20, alignItems: isNarrow ? 'center' : 'flex-start', marginBottom: 20, padding: '16px 14px', background: 'rgba(248,250,252,0.8)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 16 }}>
-        <DonutChart slices={slices} size={isNarrow ? 210 : 244} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5, paddingTop: 4 }}>
-        {slices.map((sl, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 9px', borderRadius: 9, border: '1px solid rgba(0,0,0,0.08)', background: 'rgba(255,255,255,0.4)', transition: 'background 0.15s', cursor: 'default' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = `${sl.color}20`}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.4)'}
-          >
-            <div style={{ width: 11, height: 11, borderRadius: 3, background: `linear-gradient(135deg,${sl.color},${sl.dark})`, boxShadow: `0 0 6px ${sl.color}55`, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: '#334155', flex: 1, fontFamily: FONT, fontWeight: 600 }}>{sl.label}</span>
-            <span style={{ fontSize: 12, color: sl.color, fontFamily: MONO, fontWeight: 800 }}>{((sl.value / total) * 100).toFixed(1)}%</span>
-            <span style={{ fontSize: 11, color: '#475569', fontFamily: MONO, fontWeight: 700, minWidth: 46, textAlign: 'right' }}>{(sl.value / 1000).toFixed(1)}t</span>
-          </div>
-        ))}
-        {hasB && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, padding: '8px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.08)' }}>
-            <CoverageArc pct={coverage} />
-            <div>
-              <div style={{ fontSize: 11, color: '#475569', fontFamily: FONT, fontWeight: 600, fontStyle: 'italic' }}>Sequestration Coverage</div>
-              <div style={{ fontSize: 12, color: coverage < 15 ? '#ff4d4d' : coverage < 35 ? '#ffd24d' : '#00c853', fontFamily: MONO, fontWeight: 800 }}>{coverage.toFixed(1)}% of gross offset</div>
+      {/* Bottom Stats - two columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr', gap: 16 }}>
+        {/* Baseline Stats */}
+        {before && before.length > 0 && (
+          <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
+              BASELINE
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
+              <div>Total Emission</div>     <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#dc2626' }}>{(totalEm/1000).toFixed(1)} t</div>
+              <div>Sequestered</div>        <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(totalSeq/1000).toFixed(1)} t</div>
+              <div>Net Emission</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(netEm/1000).toFixed(1)} t</div>
+              <div>Coverage</div>           <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: coverage > 40 ? '#16a34a' : coverage > 15 ? '#ca8a04' : '#dc2626' }}>{coverage.toFixed(0)}%</div>
             </div>
           </div>
         )}
-        {hasA && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
-            {[{ label: 'Reduction', value: `${pct.toFixed(1)}%`, color: '#00c853' }, { label: 'New Net', value: `${(newNet/1000).toFixed(1)}t`, color: '#6a1b9a' }, { label: 'Em. Saved', value: `${(impact/1000).toFixed(1)}t`, color: '#1565c0' }, { label: 'Seq. +', value: `${(seqInc/1000).toFixed(1)}t`, color: '#00838f' }].map(({ label, value, color }) => (
-              <div key={label} style={{ background: `${color}20`, border: `1px solid ${color}40`, borderRadius: 9, padding: '7px 10px', textAlign: 'center' }}>
-                <div style={{ fontSize: 10, color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3, fontFamily: FONT }}>{label}</div>
-                <div style={{ fontSize: 16, fontWeight: 900, color, fontFamily: MONO }}>{value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-        </div>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr', gap: 12 }}>
-        {hasB && (
-        <div style={{ background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(198,40,40,0.2)', borderRadius: 14, padding: '12px 14px' }}>
-          <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, fontFamily: FONT }}>Baseline</div>
-          <StatRow label="Total Emission" value={`${(totalEm/1000).toFixed(1)}t`}  color="#dc2626" />
-          <StatRow label="Total Seq."     value={`${(totalSeq/1000).toFixed(1)}t`} color="#00c853" />
-          <StatRow label="Net Emission"   value={`${(netEm/1000).toFixed(1)}t`}    color="#ef4444" />
-          <StatRow label="Coverage"       value={`${coverage.toFixed(1)}%`}        color={coverage < 15 ? '#dc2626' : coverage < 35 ? '#eab308' : '#22c55e'} />
-          <StatRow label="Per Capita"     value={`${perCap.toFixed(0)} kg`}        color="#475569" />
-          <StatRow label="Monthly Net"    value={`${(monthly/1000).toFixed(2)}t`}  color="#475569" />
-        </div>
-        )}
-        {hasA && (
-        <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(0,200,83,0.2)', borderRadius: 14, padding: '12px 14px' }}>
-          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, fontFamily: FONT }}>After Action</div>
-          <StatRow label="Baseline Net"   value={`${(prevNet/1000).toFixed(1)}t`}  color="#ef4444" />
-          <StatRow label="New Net"        value={`${(newNet/1000).toFixed(1)}t`}   color="#16a34a" />
-          <StatRow label="Reduction"      value={`${pct.toFixed(1)}%`}             color="#16a34a" />
-          <StatRow label="Em. Reduction"  value={`${(emRed/1000).toFixed(1)}t`}    color="#3b82f6" />
-          <StatRow label="Seq. Increase"  value={`${(seqInc/1000).toFixed(1)}t`}  color="#0ea5e9" />
-          <StatRow label="Total Impact"   value={`${(impact/1000).toFixed(1)}t`}   color="#9333ea" />
-        </div>
+        {/* After Stats */}
+        {after && after.length > 0 && (
+          <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
+              AFTER ACTION
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
+              <div>Previous Net</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(prevNet/1000).toFixed(1)} t</div>
+              <div>New Net</div>            <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(newNet/1000).toFixed(1)} t</div>
+              <div>Emission Reduced</div>   <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#3b82f6' }}>{(emRed/1000).toFixed(1)} t</div>
+              <div>Seq. Increase</div>      <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#06b6d4' }}>{(seqInc/1000).toFixed(1)} t</div>
+            </div>
+          </div>
         )}
       </div>
     </div>
