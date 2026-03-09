@@ -348,7 +348,7 @@ export default function UltraRealisticVillageHeader({ v }: { v: VillageRow | nul
           50% { transform: translateY(-10px) rotate(2deg); }
         }
         @keyframes glow {
-          0% { box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 20px rgba(255,255,255,0.3); }
+          0% { box-shadow: 0 8px 32px rgba(5, 26, 218, 0.94), 0 0 20px rgba(255,255,255,0.3); }
           100% { box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.6); }
         }
       `}</style>

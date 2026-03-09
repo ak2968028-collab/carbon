@@ -1,4 +1,5 @@
-﻿'use client';
+﻿// frontend/app/dashboard/page.tsx
+'use client';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import VillageHeader, { VillageRow } from '@/components/VillageHeader';
@@ -32,10 +33,10 @@ type Tab = 'overview' | 'emissions' | 'budget' | 'scenario' | 'sequestration' | 
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
-  { id: 'budget', label: 'Carbon Budget' },
   { id: 'emissions', label: 'Emissions' },
   { id: 'sequestration', label: 'Sequestration' },
   { id: 'interventions', label: 'Interventions' },
+  { id: 'budget', label: 'Carbon Budget' },
   { id: 'scenario', label: 'Scenarios' },
   { id: 'activity', label: 'Activity' },
 ];
@@ -551,9 +552,7 @@ export default function UltraRealisticDashboard() {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               aria-label="Toggle sidebar"
             >
-              <span className={`text-xl font-black transition-transform ${sidebarOpen ? 'rotate-180' : ''}`}>
-                â†
-              </span>
+             
             </button>
 
             <div className="relative">
@@ -572,7 +571,7 @@ export default function UltraRealisticDashboard() {
             href="/"
             className="group relative inline-flex items-center gap-2 text-lg font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-100/60 hover:bg-emerald-200/80 px-5 py-2.5 rounded-2xl backdrop-blur-xl border border-emerald-200/60 shadow-lg hover:shadow-glow-emerald-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 transform-3d"
           >
-            <span>ðŸ </span>
+            
             Home
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </Link>
@@ -637,35 +636,6 @@ export default function UltraRealisticDashboard() {
           ) : (
             <>
               <VillageHeader v={selected} />
-
-              {activeTab === 'overview' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-                  <HolographicKPICard
-                    label="Total Emissions"
-                    value={totalEm > 0 ? `${(totalEm / 1000).toFixed(1)} t` : '--'}
-                    sub="COâ‚‚e / year"
-                    accent="#ef4444"
-                    icon="E"
-                    delay={100}
-                  />
-                  <HolographicKPICard
-                    label="Net After Reduction"
-                    value={netAfter > 0 ? `${(netAfter / 1000).toFixed(1)} t` : '--'}
-                    sub="COâ‚‚e / year"
-                    accent="#10b981"
-                    icon="N"
-                    delay={200}
-                  />
-                  <HolographicKPICard
-                    label="Reduction Achieved"
-                    value={pctRed > 0 ? `${pctRed.toFixed(1)}%` : '--'}
-                    sub="via interventions"
-                    accent="#8b5cf6"
-                    icon="R"
-                    delay={300}
-                  />
-                </div>
-              )}
 
               {activeTab === 'emissions' && <EmissionsChart rows={dashData?.emissions} />}
               {activeTab === 'budget' && <CarbonBudgetCard before={dashData?.budgetBefore} after={dashData?.budgetAfter} />}

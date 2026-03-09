@@ -260,13 +260,13 @@ export default function InterventionReductions({ rows }: { rows: ReductionRow[] 
                   </div>
                 </div>
 
-                {/* Emission factor */}
+                {/* Emission factor
                 <div style={{ textAlign: isNarrow ? 'left' : 'center', paddingLeft: isNarrow ? 11 : 0 }}>
                   <div style={{ fontSize: 10, color: LABEL_COLOR, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>EF</div>
                   <div style={{ fontSize: 14, color: '#ffd24d', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
                     {ef.toFixed(4)}
                   </div>
-                </div>
+                </div> */}
               </div>
             );
           })}

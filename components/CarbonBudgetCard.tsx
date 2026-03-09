@@ -206,6 +206,54 @@ function LegendItem({ slice, percent, tons }: { slice: Slice; percent: number; t
   );
 }
 
+function BudgetKPICard({
+  label,
+  value,
+  sub,
+  accent,
+  icon,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  accent: string;
+  icon: string;
+}) {
+  return (
+    <div
+      style={{
+        borderRadius: 14,
+        border: `1px solid ${accent}35`,
+        background: `linear-gradient(135deg, ${accent}14, rgba(255,255,255,0.95))`,
+        padding: '14px 16px',
+        boxShadow: `0 8px 22px ${accent}1f`,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+        <div
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 8,
+            display: 'grid',
+            placeItems: 'center',
+            fontWeight: 800,
+            color: '#fff',
+            background: accent,
+            fontSize: 12,
+            fontFamily: MONO,
+          }}
+        >
+          {icon}
+        </div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#334155', fontFamily: FONT }}>{label}</div>
+      </div>
+      <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', fontFamily: MONO, lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, fontFamily: FONT }}>{sub}</div>
+    </div>
+  );
+}
+
 export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[] | null | undefined; after: BudgetRow[] | null | undefined }) {
   const [isNarrow, setIsNarrow] = useState(false);
   useEffect(() => {
@@ -226,6 +274,7 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
   const newNet    = getVal(after, 'new net');
   const emRed     = getVal(after, 'emission reduction');
   const seqInc    = getVal(after, 'sequestration increase');
+  const pctRed    = prevNet > 0 ? ((prevNet - newNet) / prevNet) * 100 : 0;
 
   // ── Slices for BEFORE ───────────────────────────────────
   const beforeSlices: Slice[] = [];
@@ -253,6 +302,29 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
     <div className="card" style={{ height: '100%', background: 'rgba(255,255,255,0.96)', border: '1px solid rgba(0,0,0,0.07)', borderRadius: 16, padding: 20 }}>
       <h3 style={{ margin: 0, fontSize: 21, fontWeight: 800, color: '#0f172a', fontFamily: FONT }}>Carbon Budget Comparison</h3>
       <p style={{ margin: '4px 0 20px', color: '#64748b', fontSize: 13.5, fontFamily: FONT }}>Before vs After Intervention</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2 mb-7">
+        <BudgetKPICard
+          label="Total Emissions"
+          value={totalEm > 0 ? `${(totalEm / 1000).toFixed(1)} t` : '--'}
+          sub="CO2e / year"
+          accent="#ef4444"
+          icon="E"
+        />
+        <BudgetKPICard
+          label="Net After Reduction"
+          value={newNet > 0 ? `${(newNet / 1000).toFixed(1)} t` : '--'}
+          sub="CO2e / year"
+          accent="#10b981"
+          icon="N"
+        />
+        <BudgetKPICard
+          label="Reduction Achieved"
+          value={pctRed > 0 ? `${pctRed.toFixed(1)}%` : '--'}
+          sub="via interventions"
+          accent="#8b5cf6"
+          icon="R"
+        />
+      </div>
 
       <div style={{ display: 'flex', flexDirection: layout, gap: 32, justifyContent: 'center', marginBottom: 28 }}>
         {/* Before Chart + Legend */}
@@ -321,3 +393,4 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
     </div>
   );
 }
+
