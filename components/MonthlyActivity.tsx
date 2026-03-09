@@ -33,6 +33,7 @@ function truncate(text: string, max = 22): string {
 export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | undefined }) {
   const [isNarrow, setIsNarrow] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
     const onResize = () => setIsNarrow(window.innerWidth < 640);
@@ -67,6 +68,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
   const max = Math.max(...items.map((i) => i.val), 1);
   const total = items.reduce((sum, i) => sum + i.val, 0);
   const top = items[0];
+  const active = items.find((i) => i.activity === selected) || items.find((i) => i.activity === hovered) || top;
   const avg = total / items.length;
 
   // Annual projection
@@ -80,15 +82,7 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
     unitGroups[item.unit].count += 1;
   });
 
-  const W = isNarrow ? 600 : 820;
-  const leftPad = isNarrow ? 120 : 162;
-  const rightPad = 28;
-  const topPad = 14;
-  const bottomPad = 36;
-  const rowH = isNarrow ? 36 : 40;
-  const plotW = W - leftPad - rightPad;
-  const chartH = topPad + bottomPad + rowH * items.length;
-  const xTicks = 5;
+  const shown = isNarrow ? items.slice(0, 6) : items.slice(0, 8);
 
   const LABEL = '#334155';
 
@@ -127,104 +121,53 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
         </div>
       </div>
 
-      {/* Horizontal bar chart */}
-      <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.01)', marginBottom: 16 }}>
-        <svg
-          viewBox={`0 0 ${W} ${chartH}`}
-          style={{ width: '100%', height: 'auto', display: 'block' }}
-        >
-          <rect x={0} y={0} width={W} height={chartH} fill="transparent" />
-
-          {/* Grid */}
-          {Array.from({ length: xTicks + 1 }).map((_, i) => {
-            const t = i / xTicks;
-            const v = t * max;
-            const x = leftPad + t * plotW;
-            return (
-              <g key={`tick-${i}`}>
-                <line x1={x} y1={topPad} x2={x} y2={chartH - bottomPad}
-                  stroke={i === 0 ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)'}
-                  strokeWidth={i === 0 ? 1.5 : 1}
-                  strokeDasharray={i === 0 ? '' : '3 3'}
-                />
-                <text x={x} y={chartH - 12} textAnchor="middle" fontSize="10"
-                  fill={LABEL} fontFamily="JetBrains Mono, monospace">
-                  {Math.round(v).toLocaleString()}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Bars */}
-          {items.map((item, idx) => {
-            const y = topPad + idx * rowH;
-            const barH = 24;
-            const barY = y + (rowH - barH) / 2;
-            const barW = Math.max((item.val / max) * plotW, 2);
+      {/* Interactive vertical columns */}
+      <div style={{ border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, background: 'rgba(255,255,255,0.01)', marginBottom: 16, padding: '14px 10px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, minHeight: 230, overflowX: 'auto', padding: '6px 4px 0' }}>
+          {shown.map((item) => {
             const pct = (item.val / total) * 100;
-            const isHov = hovered === item.activity;
-
+            const h = Math.max((item.val / max) * 170, 14);
+            const isActive = active.activity === item.activity;
             return (
-              <g
-                key={`${item.activity}-${idx}`}
+              <button
+                key={item.activity}
+                onClick={() => setSelected((prev) => (prev === item.activity ? null : item.activity))}
                 onMouseEnter={() => setHovered(item.activity)}
                 onMouseLeave={() => setHovered(null)}
-                style={{ cursor: 'default' }}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  padding: 0,
+                  minWidth: isNarrow ? 86 : 98,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
               >
-                {/* Row bg on hover */}
-                {isHov && (
-                  <rect x={0} y={y} width={W} height={rowH} fill="rgba(255,255,255,0.03)" rx={0} />
-                )}
-
-                {/* Activity label */}
-                <text x={8} y={barY + 16}
-                  fontSize={isNarrow ? 10 : 11}
-                  fill={isHov ? item.color : LABEL}
-                  fontFamily="Syne, sans-serif"
-                  fontWeight={isHov ? '700' : '500'}
-                >
-                  {truncate(item.activity, isNarrow ? 17 : 22)}
-                </text>
-
-                {/* Bar track (rectangular) */}
-                <rect x={leftPad} y={barY} width={plotW} height={barH} rx={3} fill="rgba(255,255,255,0.04)" />
-
-                {/* Bar fill (rectangular) */}
-                <rect x={leftPad} y={barY} width={barW} height={barH} rx={3} fill={`${item.color}${isHov ? 'ff' : 'bb'}`}>
-                  <title>{`${item.activity}: ${item.val.toLocaleString()} ${item.unit} (${pct.toFixed(1)}%)`}</title>
-                </rect>
-
-                {/* Percent badge inside bar if wide enough */}
-                {barW > 44 && (
-                  <text x={leftPad + barW - 6} y={barY + 16} textAnchor="end"
-                    fontSize="9" fill="rgba(255,255,255,0.7)" fontFamily="JetBrains Mono, monospace" fontWeight="700">
-                    {pct.toFixed(0)}%
-                  </text>
-                )}
-
-                {/* Value + unit label */}
-                <text
-                  x={Math.min(leftPad + barW + 7, W - rightPad - 2)}
-                  y={barY + 16}
-                  fontSize={isNarrow ? 9 : 10}
-                  fill={isHov ? item.color : LABEL}
-                  fontFamily="JetBrains Mono, monospace"
-                  fontWeight={isHov ? '700' : '400'}
-                >
-                  {item.val.toLocaleString()} {item.unit}
-                </text>
-              </g>
+                <div style={{ fontSize: 10, color: isActive ? item.color : LABEL, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
+                  {pct.toFixed(0)}%
+                </div>
+                <div style={{ width: '100%', height: 180, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                  <div
+                    style={{
+                      width: '72%',
+                      height: h,
+                      borderRadius: 6,
+                      background: `linear-gradient(180deg, ${item.color}, ${item.color}bb)`,
+                      boxShadow: isActive ? `0 0 0 2px ${item.color}55` : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 11, color: isActive ? item.color : LABEL, fontWeight: isActive ? 700 : 500, textAlign: 'center', lineHeight: 1.2 }}>
+                  {truncate(item.activity, 14)}
+                </div>
+              </button>
             );
           })}
-
-          {/* X axis baseline */}
-          <line x1={leftPad} y1={chartH - bottomPad + 1} x2={W - rightPad} y2={chartH - bottomPad + 1}
-            stroke="rgba(255,255,255,0.1)" strokeWidth={1.2} />
-          <text x={W / 2} y={chartH - 2} textAnchor="middle" fontSize="11"
-            fill={LABEL} fontFamily="Syne, sans-serif">
-            Monthly Quantity
-          </text>
-        </svg>
+        </div>
       </div>
 
       {/* Bottom: Top activity spotlight + unit breakdown side by side */}
@@ -234,73 +177,38 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
         <div style={{
           padding: '12px 14px',
           borderRadius: 12,
-          border: `1px solid ${top.color}33`,
-          background: `${top.color}0d`,
+          border: `1px solid ${active.color}33`,
+          background: `${active.color}0d`,
         }}>
           <div style={{ fontSize: 10, color: LABEL, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
             Highest Activity
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: top.color, fontFamily: 'Syne, sans-serif', marginBottom: 6 }}>
-            {top.activity}
+          <div style={{ fontSize: 15, fontWeight: 700, color: active.color, fontFamily: 'Syne, sans-serif', marginBottom: 6 }}>
+            {active.activity}
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             <div>
               <div style={{ fontSize: 10, color: LABEL, marginBottom: 1 }}>Monthly</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: top.color, fontFamily: 'JetBrains Mono, monospace' }}>
-                {top.val.toLocaleString()}
-                <span style={{ fontSize: 11, marginLeft: 4, fontWeight: 500 }}>{top.unit}</span>
+              <div style={{ fontSize: 18, fontWeight: 800, color: active.color, fontFamily: 'JetBrains Mono, monospace' }}>
+                {active.val.toLocaleString()}
+                <span style={{ fontSize: 11, marginLeft: 4, fontWeight: 500 }}>{active.unit}</span>
               </div>
             </div>
             <div>
               <div style={{ fontSize: 10, color: LABEL, marginBottom: 1 }}>Share</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: top.color, fontFamily: 'JetBrains Mono, monospace' }}>
-                {((top.val / total) * 100).toFixed(1)}%
+              <div style={{ fontSize: 18, fontWeight: 800, color: active.color, fontFamily: 'JetBrains Mono, monospace' }}>
+                {((active.val / total) * 100).toFixed(1)}%
               </div>
             </div>
             <div>
               <div style={{ fontSize: 10, color: LABEL, marginBottom: 1 }}>Annual</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: top.color, fontFamily: 'JetBrains Mono, monospace' }}>
-                {(top.val * 12).toLocaleString()}
+              <div style={{ fontSize: 18, fontWeight: 800, color: active.color, fontFamily: 'JetBrains Mono, monospace' }}>
+                {(active.val * 12).toLocaleString()}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Unit breakdown */}
-        <div style={{
-          padding: '12px 14px',
-          borderRadius: 12,
-          border: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(255,255,255,0.02)',
-        }}>
-          <div style={{ fontSize: 10, color: LABEL, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
-            By Unit Type
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {Object.values(unitGroups).sort((a, b) => b.total - a.total).map(({ unit, total: uTotal, count }) => {
-              const pct = (uTotal / total) * 100;
-              return (
-                <div key={unit}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>{unit}</span>
-                    <span style={{ fontSize: 11, color: LABEL, fontFamily: 'JetBrains Mono, monospace' }}>
-                      {uTotal.toLocaleString()} · {count} {count === 1 ? 'activity' : 'activities'}
-                    </span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${pct}%`,
-                      height: '100%',
-                      background: 'rgba(255,255,255,0.25)',
-                      borderRadius: 99,
-                      transition: 'width 0.6s ease',
-                    }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -298,8 +298,8 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
 
   // ── Slices for AFTER ────────────────────────────────────
   const afterSlices: Slice[] = [];
-  if (emRed  > 0) afterSlices.push({ label: 'Reduced',          value: emRed,  ...SHARED_COLORS[0] });
-  if (seqInc > 0) afterSlices.push({ label: 'Seq. Increase',    value: seqInc, ...SHARED_COLORS[1] });
+  if (emRed  > 0) afterSlices.push({ label: 'Reduced',          value: emRed,  ...SHARED_COLORS[1] });
+  if (seqInc > 0) afterSlices.push({ label: 'Seq. Increase',    value: seqInc, ...SHARED_COLORS[0] });
   if (newNet > 0) afterSlices.push({ label: 'New Net Emission', value: newNet, ...NET_RED });
   if (afterSlices.length === 0) afterSlices.push({ label: 'No Change', value: 1, color: '#9ca3af', dark: '#6b7280' });
 
@@ -352,13 +352,13 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
           {after && after.length > 0 && (
             <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
-                AFTER ACTION
+                AFTER INTERVENTION
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
                 <div>Previous Net</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(prevNet/1000).toFixed(1)} t</div>
                 <div>New Net</div>            <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(newNet/1000).toFixed(1)} t</div>
                 <div>Emission Reduced</div>   <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#3b82f6' }}>{(emRed/1000).toFixed(1)} t</div>
-                <div>Seq. Increase</div>      <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#06b6d4' }}>{(seqInc/1000).toFixed(1)} t</div>
+                <div>Seq. Increase</div>      <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(seqInc/1000).toFixed(1)} t</div>
               </div>
             </div>
           )}
@@ -380,7 +380,7 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
           </div>
 
           <div style={{ flex: 1, maxWidth: 320 }}>
-            <DonutChart slices={afterSlices} title="After Action" size={240} />
+            <DonutChart slices={afterSlices} title="After Intervention" size={240} />
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {afterSlices.map((sl, i) => (
                 <LegendItem
@@ -397,3 +397,4 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
     </div>
   );
 }
+

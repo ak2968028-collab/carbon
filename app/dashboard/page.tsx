@@ -658,22 +658,7 @@ export default function UltraRealisticDashboard() {
 
               {activeTab === 'overview' && (
                 <div className="mt-6 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
-                    <HolographicKPICard
-                      label="Reduction Achieved"
-                      value={pctRed > 0 ? `${pctRed.toFixed(1)}%` : '--'}
-                      sub="from interventions"
-                      accent="#8b5cf6"
-                      icon="R"
-                    />
-                    <HolographicKPICard
-                      label="Intervention Savings"
-                      value={reductionTons > 0 ? `${reductionTons.toFixed(1)} t` : '--'}
-                      sub="annual CO2e reduction"
-                      accent="#3b82f6"
-                      icon="S"
-                    />
-                  </div>
+                  
 
                   <MonthlyActivity rows={dashData?.monthly} />
 
