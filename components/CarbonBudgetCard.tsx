@@ -276,6 +276,12 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
   const emRed     = getVal(after, 'emission reduction');
   const seqInc    = getVal(after, 'sequestration increase');
   const pctRed    = prevNet > 0 ? ((prevNet - newNet) / prevNet) * 100 : 0;
+  const SHARED_COLORS = [
+    { color: '#22c55e', dark: '#15803d' },
+    { color: '#3b82f6', dark: '#1d4ed8' },
+    { color: '#8b5cf6', dark: '#6d28d9' },
+  ];
+  const NET_RED = { color: '#ef4444', dark: '#b91c1c' };
 
   // ── Slices for BEFORE ───────────────────────────────────
   const beforeSlices: Slice[] = [];
@@ -284,17 +290,17 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
     const netP  = Math.max(netEm, 0);
     const remP  = Math.max(totalEm - seqP - netP, 0);
 
-    if (seqP  > 0) beforeSlices.push({ label: 'Sequestered',     value: seqP,  color: '#22c55e', dark: '#15803d' });
-    if (netP   > 0) beforeSlices.push({ label: 'Net Emission',    value: netP,  color: '#ef4444', dark: '#b91c1c' });
-    if (remP   > 0) beforeSlices.push({ label: 'Gross Remaining', value: remP,  color: '#f97316', dark: '#c2410c' });
+    if (seqP  > 0) beforeSlices.push({ label: 'Sequestered',     value: seqP,  ...SHARED_COLORS[0] });
+    if (netP   > 0) beforeSlices.push({ label: 'Net Emission',    value: netP,  ...NET_RED });
+    if (remP   > 0) beforeSlices.push({ label: 'Gross Remaining', value: remP,  ...SHARED_COLORS[2] });
   }
   if (beforeSlices.length === 0) beforeSlices.push({ label: 'No Data', value: 1, color: '#9ca3af', dark: '#6b7280' });
 
   // ── Slices for AFTER ────────────────────────────────────
   const afterSlices: Slice[] = [];
-  if (emRed  > 0) afterSlices.push({ label: 'Reduced',          value: emRed,  color: '#3b82f6', dark: '#1d4ed8' });
-  if (seqInc > 0) afterSlices.push({ label: 'Seq. Increase',    value: seqInc, color: '#06b6d4', dark: '#0891b2' });
-  if (newNet > 0) afterSlices.push({ label: 'New Net Emission', value: newNet, color: '#8b5cf6', dark: '#6d28d9' });
+  if (emRed  > 0) afterSlices.push({ label: 'Reduced',          value: emRed,  ...SHARED_COLORS[0] });
+  if (seqInc > 0) afterSlices.push({ label: 'Seq. Increase',    value: seqInc, ...SHARED_COLORS[1] });
+  if (newNet > 0) afterSlices.push({ label: 'New Net Emission', value: newNet, ...NET_RED });
   if (afterSlices.length === 0) afterSlices.push({ label: 'No Change', value: 1, color: '#9ca3af', dark: '#6b7280' });
 
   const layout = isNarrow ? 'column' : 'row';
@@ -315,7 +321,7 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
           label="Net After Reduction"
           value={newNet > 0 ? `${(newNet / 1000).toFixed(1)} t` : '--'}
           sub="CO2e / year"
-          accent="#10b981"
+          accent="#ef4444"
           icon="N"
         />
         <BudgetKPICard
@@ -327,69 +333,66 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
         />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: layout, gap: 32, justifyContent: 'center', marginBottom: 28 }}>
-        {/* Before Chart + Legend */}
-        <div style={{ flex: 1, maxWidth: 320 }}>
-          <DonutChart slices={beforeSlices} title="Baseline (Before)" size={240} />
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {beforeSlices.map((sl, i) => (
-              <LegendItem
-                key={i}
-                slice={sl}
-                percent={(sl.value / beforeSlices.reduce((a, b) => a + b.value, 0)) * 100}
-                tons={sl.value / 1000}
-              />
-            ))}
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1.05fr 1.35fr', gap: 18 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+          {before && before.length > 0 && (
+            <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 12, padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
+                BASELINE
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
+                <div>Total Emission</div>     <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#dc2626' }}>{(totalEm/1000).toFixed(1)} t</div>
+                <div>Sequestered</div>        <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(totalSeq/1000).toFixed(1)} t</div>
+                <div>Net Emission</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(netEm/1000).toFixed(1)} t</div>
+                <div>Coverage</div>           <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: coverage > 40 ? '#16a34a' : coverage > 15 ? '#ca8a04' : '#dc2626' }}>{coverage.toFixed(0)}%</div>
+              </div>
+            </div>
+          )}
+
+          {after && after.length > 0 && (
+            <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 12, padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
+                AFTER ACTION
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
+                <div>Previous Net</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(prevNet/1000).toFixed(1)} t</div>
+                <div>New Net</div>            <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(newNet/1000).toFixed(1)} t</div>
+                <div>Emission Reduced</div>   <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#3b82f6' }}>{(emRed/1000).toFixed(1)} t</div>
+                <div>Seq. Increase</div>      <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#06b6d4' }}>{(seqInc/1000).toFixed(1)} t</div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* After Chart + Legend */}
-        <div style={{ flex: 1, maxWidth: 320 }}>
-          <DonutChart slices={afterSlices} title="After Action" size={240} />
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {afterSlices.map((sl, i) => (
-              <LegendItem
-                key={i}
-                slice={sl}
-                percent={(sl.value / afterSlices.reduce((a, b) => a + b.value, 0)) * 100}
-                tons={sl.value / 1000}
-              />
-            ))}
+        <div style={{ display: 'flex', flexDirection: layout, gap: 20, justifyContent: 'center' }}>
+          <div style={{ flex: 1, maxWidth: 320 }}>
+            <DonutChart slices={beforeSlices} title="Baseline (Before)" size={240} />
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {beforeSlices.map((sl, i) => (
+                <LegendItem
+                  key={i}
+                  slice={sl}
+                  percent={(sl.value / beforeSlices.reduce((a, b) => a + b.value, 0)) * 100}
+                  tons={sl.value / 1000}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div style={{ flex: 1, maxWidth: 320 }}>
+            <DonutChart slices={afterSlices} title="After Action" size={240} />
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {afterSlices.map((sl, i) => (
+                <LegendItem
+                  key={i}
+                  slice={sl}
+                  percent={(sl.value / afterSlices.reduce((a, b) => a + b.value, 0)) * 100}
+                  tons={sl.value / 1000}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom Stats - two columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr', gap: 16 }}>
-        {/* Baseline Stats */}
-        {before && before.length > 0 && (
-          <div style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
-              BASELINE
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
-              <div>Total Emission</div>     <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#dc2626' }}>{(totalEm/1000).toFixed(1)} t</div>
-              <div>Sequestered</div>        <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(totalSeq/1000).toFixed(1)} t</div>
-              <div>Net Emission</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(netEm/1000).toFixed(1)} t</div>
-              <div>Coverage</div>           <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: coverage > 40 ? '#16a34a' : coverage > 15 ? '#ca8a04' : '#dc2626' }}>{coverage.toFixed(0)}%</div>
-            </div>
-          </div>
-        )}
-
-        {/* After Stats */}
-        {after && after.length > 0 && (
-          <div style={{ background: 'rgba(34,197,94,0.07)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 12, color: '#16a34a', fontWeight: 800, letterSpacing: '0.04em', marginBottom: 10, fontFamily: FONT }}>
-              AFTER ACTION
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px 12px', fontSize: 13 }}>
-              <div>Previous Net</div>       <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#ef4444' }}>{(prevNet/1000).toFixed(1)} t</div>
-              <div>New Net</div>            <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#16a34a' }}>{(newNet/1000).toFixed(1)} t</div>
-              <div>Emission Reduced</div>   <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#3b82f6' }}>{(emRed/1000).toFixed(1)} t</div>
-              <div>Seq. Increase</div>      <div style={{ textAlign: 'right', fontFamily: MONO, fontWeight: 700, color: '#06b6d4' }}>{(seqInc/1000).toFixed(1)} t</div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

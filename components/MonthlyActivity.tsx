@@ -186,11 +186,11 @@ export default function MonthlyActivity({ rows }: { rows: MonthlyRow[] | null | 
                   {truncate(item.activity, isNarrow ? 17 : 22)}
                 </text>
 
-                {/* Bar track */}
-                <rect x={leftPad} y={barY} width={plotW} height={barH} rx={999} fill="rgba(255,255,255,0.04)" />
+                {/* Bar track (rectangular) */}
+                <rect x={leftPad} y={barY} width={plotW} height={barH} rx={3} fill="rgba(255,255,255,0.04)" />
 
-                {/* Bar fill */}
-                <rect x={leftPad} y={barY} width={barW} height={barH} rx={999} fill={`${item.color}${isHov ? 'ff' : 'bb'}`}>
+                {/* Bar fill (rectangular) */}
+                <rect x={leftPad} y={barY} width={barW} height={barH} rx={3} fill={`${item.color}${isHov ? 'ff' : 'bb'}`}>
                   <title>{`${item.activity}: ${item.val.toLocaleString()} ${item.unit} (${pct.toFixed(1)}%)`}</title>
                 </rect>
 

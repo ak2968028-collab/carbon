@@ -6,12 +6,11 @@ import VillageHeader, { VillageRow } from '@/components/VillageHeader';
 import EmissionsChart, { EmissionRow } from '@/components/EmissionsChart';
 import CarbonBudgetCard, { BudgetRow } from '@/components/CarbonBudgetCard';
 import ScenarioProjection, { ScenarioRow } from '@/components/ScenarioProjection';
+import MonthlyActivity, { MonthlyRow } from '@/components/MonthlyActivity';
 import {
   SequestrationCard,
   SeqBeforeRow,
   SeqAfterRow,
-  MonthlyActivity,
-  MonthlyRow,
   EmissionFactors,
   FactorRow,
 } from '@/components/SequestrationCard';
@@ -29,6 +28,8 @@ interface DashData {
   factors: FactorRow[];
 }
 
+type CsvRow = Record<string, unknown>;
+
 type Tab = 'overview' | 'emissions' | 'budget' | 'scenario' | 'sequestration' | 'interventions' | 'activity';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -38,8 +39,31 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'interventions', label: 'Interventions' },
   { id: 'budget', label: 'Carbon Budget' },
   { id: 'scenario', label: 'Scenarios' },
-  { id: 'activity', label: 'Activity' },
 ];
+
+function csvEscape(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const raw = String(value);
+  if (/[",\n]/.test(raw)) return `"${raw.replace(/"/g, '""')}"`;
+  return raw;
+}
+
+function rowsToCsv(rows: CsvRow[]): string {
+  if (!rows.length) return 'No data';
+  const headers = Array.from(
+    rows.reduce((set, row) => {
+      Object.keys(row).forEach((k) => set.add(k));
+      return set;
+    }, new Set<string>())
+  );
+
+  const lines = rows.map((row) => headers.map((h) => csvEscape(row[h])).join(','));
+  return [headers.join(','), ...lines].join('\n');
+}
+
+function buildCsvSection(title: string, rows: CsvRow[]): string {
+  return [`${title}`, rowsToCsv(rows)].join('\n');
+}
 
 // Hyper-realistic particle system for backgrounds
 function AmbientParticles({ color = 'rgba(117,166,231,0.1)' }: { color?: string }) {
@@ -356,7 +380,7 @@ function HolographicSidebar({
   return (
     <aside
       className={`
-        fixed md:sticky top-0 left-0 h-screen w-[85vw] max-w-[320px] md:w-[280px] z-50
+        fixed md:sticky top-0 left-0 h-screen w-72 md:w-[280px] z-50
         bg-gray-100 border-r border-gray-200
         transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -466,24 +490,39 @@ export default function UltraRealisticDashboard() {
   const getVal = (rows: BudgetRow[], key: string) =>
     parseFloat(rows.find((r) => r.parameter?.toLowerCase().includes(key.toLowerCase()))?.value || '0');
 
-  const netAfter = dashData ? getVal(dashData.budgetAfter, 'new net') : 0;
   const pctRed = dashData ? getVal(dashData.budgetAfter, 'percentage') : 0;
-  const totalEm = dashData ? getVal(dashData.budgetBefore, 'total emission') : 0;
   const reductionTons = dashData
     ? dashData.reductions.reduce((sum, r) => sum + (parseFloat(r.annual_co2_reduction_kg || '0') || 0), 0) / 1000
     : 0;
-  const emissionBySector = useMemo(() => {
-    const map = new Map<string, number>();
-    (dashData?.emissions || []).forEach((row) => {
-      const kg = parseFloat(row.annual_co2_kg || '0') || 0;
-      if (!kg) return;
-      map.set(row.sector, (map.get(row.sector) || 0) + kg);
-    });
-    return Array.from(map.entries())
-      .map(([sector, kg]) => ({ sector, kg }))
-      .sort((a, b) => b.kg - a.kg);
-  }, [dashData?.emissions]);
-  const topSector = emissionBySector[0];
+
+  const handleExportCsv = () => {
+    if (!selected || !dashData) return;
+
+    const safeVillage = selected.village_name.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const sections = [
+      buildCsvSection('Village', [selected as unknown as CsvRow]),
+      buildCsvSection('Emissions', (dashData.emissions || []) as unknown as CsvRow[]),
+      buildCsvSection('Carbon Budget - Before', (dashData.budgetBefore || []) as unknown as CsvRow[]),
+      buildCsvSection('Carbon Budget - After', (dashData.budgetAfter || []) as unknown as CsvRow[]),
+      buildCsvSection('Sequestration - Before', (dashData.seqBefore || []) as unknown as CsvRow[]),
+      buildCsvSection('Sequestration - After', (dashData.seqAfter || []) as unknown as CsvRow[]),
+      buildCsvSection('Interventions', (dashData.reductions || []) as unknown as CsvRow[]),
+      buildCsvSection('Scenario', (dashData.scenario || []) as unknown as CsvRow[]),
+      buildCsvSection('Monthly Activity', (dashData.monthly || []) as unknown as CsvRow[]),
+      buildCsvSection('Emission Factors', (dashData.factors || []) as unknown as CsvRow[]),
+    ];
+
+    const csvContent = sections.join('\n\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeVillage}_${selected.vlcode}_all_api_data.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 relative overflow-hidden">
@@ -538,14 +577,23 @@ export default function UltraRealisticDashboard() {
             </div>
           </div>
 
-          <Link
-            href="/"
-            className="group relative inline-flex items-center gap-2 text-sm md:text-lg font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-100/60 hover:bg-emerald-200/80 px-3 md:px-5 py-2 rounded-xl md:rounded-2xl backdrop-blur-xl border border-emerald-200/60 shadow-lg hover:shadow-glow-emerald-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 transform-3d"
-          >
-            
-            Home
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          </Link>
+          <div className="flex items-center gap-2 md:gap-3">
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={!selected || !dashData || loading}
+              className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 md:px-4 py-2 rounded-lg border border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Export CSV
+            </button>
+            <Link
+              href="/"
+              className="group relative inline-flex items-center gap-2 text-sm md:text-lg font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-100/60 hover:bg-emerald-200/80 px-3 md:px-5 py-2 rounded-xl md:rounded-2xl backdrop-blur-xl border border-emerald-200/60 shadow-lg hover:shadow-glow-emerald-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 transform-3d"
+            >
+              Home
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </Link>
+          </div>
         </header>
 
         {/* Holographic Tab Navigation */}
@@ -557,11 +605,11 @@ export default function UltraRealisticDashboard() {
               <button
                 key={tab.id}
                 className={`
-                  relative overflow-hidden px-4 md:px-7 py-2.5 md:py-3.5 rounded-xl md:rounded-3xl text-sm md:text-base font-bold whitespace-nowrap transition-all duration-300 ease-out
-                  backdrop-blur-xl shadow-sm md:shadow-lg
+                  relative overflow-hidden px-7 py-3.5 rounded-3xl text-base font-bold whitespace-nowrap transition-all duration-500 ease-out
+                  backdrop-blur-xl shadow-lg hover:shadow-holo-lg transform-3d
                   ${isActive 
-                    ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-teal-500/15 text-emerald-800 border border-emerald-300/60 md:border-2 md:shadow-glow-emerald-xl md:shadow-emerald-500/25 md:ring-2 md:ring-emerald-400/30 md:scale-105 md:translate-y-1' 
-                    : 'bg-white/80 border border-slate-200/60 text-slate-700 hover:bg-slate-50/90 hover:text-slate-900 hover:border-emerald-300/50 md:hover:shadow-glow-emerald-lg md:hover:scale-105 md:hover:translate-y-1'
+                    ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-teal-500/15 text-emerald-800 border-2 border-emerald-300/60 shadow-glow-emerald-xl shadow-emerald-500/25 ring-4 ring-emerald-400/30 scale-105 translate-y-1' 
+                    : 'bg-white/80 border border-slate-200/50 text-slate-700 hover:bg-slate-50/90 hover:text-slate-900 hover:border-emerald-300/50 hover:shadow-glow-emerald-lg hover:scale-105 hover:translate-y-1 hover:rotate-x-5'
                   }
                 `}
                 onClick={() => {
@@ -610,21 +658,7 @@ export default function UltraRealisticDashboard() {
 
               {activeTab === 'overview' && (
                 <div className="mt-6 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <HolographicKPICard
-                      label="Total Emissions"
-                      value={totalEm > 0 ? `${(totalEm / 1000).toFixed(1)} t` : '--'}
-                      sub="CO2e per year"
-                      accent="#ef4444"
-                      icon="E"
-                    />
-                    <HolographicKPICard
-                      label="Net After Reduction"
-                      value={netAfter > 0 ? `${(netAfter / 1000).toFixed(1)} t` : '--'}
-                      sub="CO2e per year"
-                      accent="#10b981"
-                      icon="N"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
                     <HolographicKPICard
                       label="Reduction Achieved"
                       value={pctRed > 0 ? `${pctRed.toFixed(1)}%` : '--'}
@@ -641,55 +675,8 @@ export default function UltraRealisticDashboard() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                      <h3 className="text-base font-semibold text-gray-900">Emission Profile</h3>
-                      <p className="text-sm text-gray-600 mt-1">Top sectors by annual emission share</p>
-                      <div className="mt-4 space-y-3">
-                        {emissionBySector.slice(0, 4).map((item) => {
-                          const share = totalEm > 0 ? (item.kg / totalEm) * 100 : 0;
-                          return (
-                            <div key={item.sector} className="group">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="font-medium text-gray-700">{item.sector}</span>
-                                <span className="text-gray-600">{(item.kg / 1000).toFixed(1)} t</span>
-                              </div>
-                              <div className="mt-1.5 h-2 rounded-full bg-gray-100 overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500 group-hover:from-blue-600 group-hover:to-cyan-600"
-                                  style={{ width: `${Math.min(100, share)}%` }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {emissionBySector.length === 0 && <div className="text-sm text-gray-500">No emission data available.</div>}
-                      </div>
-                    </div>
+                  <MonthlyActivity rows={dashData?.monthly} />
 
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                      <h3 className="text-base font-semibold text-gray-900">Overview Summary</h3>
-                      <p className="text-sm text-gray-600 mt-1">Quick snapshot for current village</p>
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                          <div className="text-xs text-gray-500">Top Emitting Sector</div>
-                          <div className="text-sm font-semibold text-gray-900 mt-1">{topSector?.sector || '--'}</div>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                          <div className="text-xs text-gray-500">Activities Tracked</div>
-                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.emissions?.length || 0}</div>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                          <div className="text-xs text-gray-500">Interventions</div>
-                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.reductions?.length || 0}</div>
-                        </div>
-                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                          <div className="text-xs text-gray-500">Scenario Years</div>
-                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.scenario?.length || 0}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
 
