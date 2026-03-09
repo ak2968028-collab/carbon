@@ -169,33 +169,33 @@ function HolographicVillageDropdown({
   }, [q, villages]);
 
   return (
-    <div ref={ref} className="relative w-full px-4">
-      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+    <div ref={ref} className="relative w-full">
+      <div className="mb-2 text-xs font-semibold text-gray-700">
         Village Selection
       </div>
 
       <button
         className={`
-          w-full rounded-xl border px-4 py-3 text-left
-          bg-white text-slate-900 transition-colors
-          ${open ? 'border-emerald-500 ring-2 ring-emerald-200' : 'border-slate-300'}
-          ${loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-50'}
+          w-full rounded-md border px-3 py-2.5 text-left text-sm
+          bg-white text-gray-900 transition-colors
+          ${open ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-300'}
+          ${loading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}
         `}
         onClick={() => !loading && setOpen((o) => !o)}
         disabled={loading}
       >
         <div className="flex items-center justify-between">
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold">
+            <div className="truncate font-medium">
               {loading ? 'Loading villages...' : selected?.village_name || 'Select village'}
             </div>
             {selected && (
-              <div className="mt-0.5 text-[11px] text-slate-500">
+              <div className="mt-0.5 text-xs text-gray-500">
                 {selected.district}, {selected.state}
               </div>
             )}
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-gray-500">
             ▼
           </div>
         </div>
@@ -205,18 +205,18 @@ function HolographicVillageDropdown({
       {open && villages.length > 0 && (
         <div
           className="
-            absolute left-4 right-4 mt-2 max-h-80 overflow-hidden rounded-xl
-            bg-white border border-slate-200 shadow-lg
+            absolute left-0 right-0 mt-2 max-h-80 overflow-hidden rounded-md
+            bg-white border border-gray-200 shadow-md
             z-50
           "
         >
-          <div className="sticky top-0 bg-white p-2.5 border-b border-slate-200 z-10">
+          <div className="sticky top-0 bg-white p-2 border-b border-gray-200 z-10">
             <div className="relative">
               <input
                 className="
-                  w-full px-3 py-2.5 rounded-lg border border-slate-300
-                  bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200
-                  placeholder:text-slate-400 text-slate-900 text-sm
+                  w-full px-3 py-2 rounded-md border border-gray-300
+                  bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100
+                  placeholder:text-gray-400 text-gray-900 text-sm
                   focus:outline-none
                 "
                 placeholder="Search villages..."
@@ -235,10 +235,10 @@ function HolographicVillageDropdown({
                 <div
                   key={v.vlcode}
                   className={`
-                    px-4 py-3 cursor-pointer transition-colors
-                    hover:bg-emerald-50
+                    px-3 py-2.5 cursor-pointer transition-colors
+                    hover:bg-gray-50
                     ${isSelected 
-                      ? 'bg-emerald-50 ring-1 ring-emerald-200 font-semibold' 
+                      ? 'bg-blue-50 ring-1 ring-blue-200 font-semibold' 
                       : ''
                     }
                   `}
@@ -250,26 +250,26 @@ function HolographicVillageDropdown({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`
-                        w-9 h-9 rounded-lg p-1.5 font-bold text-lg
+                        w-7 h-7 rounded-md flex items-center justify-center text-sm font-semibold
                         ${isSelected 
-                          ? 'bg-emerald-500 text-white' 
-                          : 'bg-slate-100 text-slate-700'
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-gray-100 text-gray-700'
                         }
                         transition-colors
                       `}>
                         {isSelected ? '✓' : '•'}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-sm text-slate-900 truncate">
+                        <div className="font-medium text-sm text-gray-900 truncate">
                           {v.village_name}
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
+                        <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
                           {v.district}
                         </div>
                       </div>
                     </div>
-                    <div className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
+                    <div className="text-[10px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
                       VL-{v.vlcode}
                     </div>
                   </div>
@@ -278,8 +278,8 @@ function HolographicVillageDropdown({
             })}
             
             {visibleVillages.length === 0 && (
-              <div className="px-6 py-8 text-center">
-                <div className="text-slate-500 text-sm">No villages found</div>
+              <div className="px-4 py-6 text-center">
+                <div className="text-gray-500 text-sm">No villages found</div>
               </div>
             )}
           </div>
@@ -305,66 +305,30 @@ function HolographicKPICard({
   icon: string;
   delay?: number;
 }) {
-  const [hovered, setHovered] = useState(false);
-  
+  const toneStyles: Record<string, { badge: string; ring: string; soft: string }> = {
+    '#ef4444': { badge: 'bg-red-100 text-red-700', ring: 'hover:border-red-200', soft: 'text-red-600' },
+    '#10b981': { badge: 'bg-emerald-100 text-emerald-700', ring: 'hover:border-emerald-200', soft: 'text-emerald-600' },
+    '#8b5cf6': { badge: 'bg-violet-100 text-violet-700', ring: 'hover:border-violet-200', soft: 'text-violet-600' },
+    '#3b82f6': { badge: 'bg-blue-100 text-blue-700', ring: 'hover:border-blue-200', soft: 'text-blue-600' },
+  };
+  const tone = toneStyles[accent] || { badge: 'bg-slate-100 text-slate-700', ring: 'hover:border-slate-200', soft: 'text-slate-600' };
+
   return (
     <div
       className={`
-        relative overflow-hidden group cursor-pointer
-        bg-gradient-to-br from-white/95 via-white/85 to-white/70
-        backdrop-blur-3xl border border-slate-200/50 rounded-3xl p-7 shadow-2xl
-        hover:shadow-holo-2xl hover:shadow-[color:${accent}] hover:-translate-y-3 hover:rotate-x-8
-        transition-all duration-700 ease-out hover:scale-[1.02]
-        animate-float-3d
+        rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200
+        hover:shadow-md hover:-translate-y-0.5 ${tone.ring}
       `}
-      style={{ 
-        animationDelay: `${delay}ms`,
-        '--accent-glow': accent 
-      } as React.CSSProperties}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      style={{ animationDelay: `${delay}ms` } as React.CSSProperties}
     >
-      {/* Floating particles */}
-      <AmbientParticles color={`${accent}20`} />
-      
-      {/* Holographic scanning lines */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 skew-x-12 animate-scan-slow" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 skew-x-12 animate-scan-slow delay-1000" />
-      </div>
-      
-      <div className="relative z-20 flex items-center gap-5 h-full">
-        {/* 3D Icon */}
-        <div 
-          className={`
-            w-20 h-20 rounded-3xl flex items-center justify-center font-black text-4xl shadow-2xl
-            bg-gradient-to-br from-white/90 to-white/50 backdrop-blur-xl border-2 border-white/50
-            group-hover:scale-125 group-hover:rotate-y-180 transition-all duration-700 ease-out
-            shadow-glow-2xl hover:shadow-glow-[var(--accent-glow)]
-            transform-3d
-          `}
-          style={{ backgroundColor: accent }}
-        >
-          {icon}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="text-xs font-semibold tracking-wide text-gray-600 uppercase">{label}</div>
+          <div className="mt-2 text-3xl font-bold text-gray-900">{value}</div>
+          <div className={`mt-1 text-sm ${tone.soft}`}>{sub}</div>
         </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="text-xs uppercase font-black tracking-widest text-slate-500 mb-2 flex items-center gap-2">
-            <div className="w-2 h-2 bg-gradient-to-r from-slate-400 to-slate-600 rounded-full shadow-glow animate-pulse" />
-            {label}
-          </div>
-          
-          <div 
-            className="text-4xl md:text-5xl font-black bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-3 leading-tight"
-            style={{ textShadow: `0 0 30px ${accent}40` }}
-          >
-            {value}
-          </div>
-          
-          <div className="text-sm font-semibold text-slate-600 bg-slate-100/60 px-3 py-1.5 rounded-xl backdrop-blur-sm border border-slate-200/50 shadow-inner inline-flex items-center gap-2">
-            <div className="w-2 h-2 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full shadow-glow animate-pulse-slow" />
-            {sub}
-          </div>
+        <div className={`h-9 w-9 rounded-lg text-sm font-semibold flex items-center justify-center ${tone.badge}`}>
+          {icon}
         </div>
       </div>
     </div>
@@ -374,62 +338,51 @@ function HolographicKPICard({
 // Enhanced Sidebar with glassmorphism + 3D
 function HolographicSidebar({ 
   sidebarOpen, 
-  setSidebarOpen, 
+  setSidebarOpen,
+  isMobile,
   villagesLoading,
   villages,
   selected,
-  setSelected,
-  activeTab 
+  setSelected
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  isMobile: boolean;
   villagesLoading: boolean;
   villages: VillageRow[];
   selected: VillageRow | null;
   setSelected: (v: VillageRow) => void;
-  activeTab: Tab;
 }) {
   return (
     <aside
       className={`
-        fixed md:sticky top-0 left-0 h-screen w-72 md:w-[300px] z-50 backdrop-blur-3xl
-        bg-gradient-to-b from-white/95 via-white/90 to-white/80
-        border-r border-slate-200/40 shadow-3xl md:shadow-none transition-all duration-700 ease-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0 scale-x-95'}
-        hover:shadow-holo-xl hover:shadow-slate-900/20
-        transform-3d perspective-1000
+        fixed md:sticky top-0 left-0 h-screen w-[85vw] max-w-[320px] md:w-[280px] z-50
+        bg-gray-100 border-r border-gray-200
+        transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}
     >
-      {/* Ambient particles */}
-      <AmbientParticles color="rgba(0,230,118,0.05)" />
-      
-      {/* Header with holographic logo */}
-      <div className="p-8 border-b border-slate-200/50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-teal-500/5 animate-pulse-slow" />
-        
-        <div className="relative z-20 flex items-center gap-4">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white font-black text-2xl flex items-center justify-center shadow-2xl shadow-emerald-500/40 ring-2 ring-white/30 hover:rotate-180 hover:scale-110 transition-all duration-500 transform-3d">
-              <div className="absolute inset-0 bg-white/20 rounded-3xl blur-xl animate-ping-slow" />
-              CW
-            </div>
-            <div className="absolute -inset-2 bg-gradient-to-r from-emerald-400/30 to-teal-400/30 rounded-3xl blur-xl animate-pulse opacity-75" />
-          </div>
-          
+      <div className="p-5 border-b border-gray-200">
+        <div className="flex items-start justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-black bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent drop-shadow-lg">
-              CarbonWatch
-            </h1>
-            <div className="text-xs font-bold text-emerald-600 bg-emerald-100/60 px-3 py-1 rounded-full shadow-md ring-1 ring-emerald-200/50 mt-2 inline-flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-glow animate-pulse" />
-              SLCR - Varanasi
-            </div>
+            <h1 className="text-lg font-semibold text-gray-900">Carbon Dashboard</h1>
+            <p className="text-xs text-gray-600 mt-1">SLCR - Varanasi</p>
           </div>
+          {isMobile && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+              aria-label="Close sidebar"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
       {/* Village selector */}
-      <div className="p-6">
+      <div className="p-4">
         <HolographicVillageDropdown
           villages={villages}
           selected={selected}
@@ -516,6 +469,21 @@ export default function UltraRealisticDashboard() {
   const netAfter = dashData ? getVal(dashData.budgetAfter, 'new net') : 0;
   const pctRed = dashData ? getVal(dashData.budgetAfter, 'percentage') : 0;
   const totalEm = dashData ? getVal(dashData.budgetBefore, 'total emission') : 0;
+  const reductionTons = dashData
+    ? dashData.reductions.reduce((sum, r) => sum + (parseFloat(r.annual_co2_reduction_kg || '0') || 0), 0) / 1000
+    : 0;
+  const emissionBySector = useMemo(() => {
+    const map = new Map<string, number>();
+    (dashData?.emissions || []).forEach((row) => {
+      const kg = parseFloat(row.annual_co2_kg || '0') || 0;
+      if (!kg) return;
+      map.set(row.sector, (map.get(row.sector) || 0) + kg);
+    });
+    return Array.from(map.entries())
+      .map(([sector, kg]) => ({ sector, kg }))
+      .sort((a, b) => b.kg - a.kg);
+  }, [dashData?.emissions]);
+  const topSector = emissionBySector[0];
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 relative overflow-hidden">
@@ -534,42 +502,45 @@ export default function UltraRealisticDashboard() {
       <HolographicSidebar 
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        isMobile={isMobile}
         villagesLoading={villagesLoading}
         villages={villages}
         selected={selected}
         setSelected={setSelected}
-        activeTab={activeTab}
       />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0 relative">
         {/* Holographic Topbar */}
-        <header className="sticky top-0 z-40 backdrop-blur-3xl bg-white/95 border-b border-slate-200/60 shadow-glow-xl px-6 md:px-10 py-5 flex items-center justify-between relative overflow-hidden">
+        <header className="sticky top-0 z-40 backdrop-blur-3xl bg-white/95 border-b border-slate-200/60 shadow-glow-xl px-4 md:px-10 py-4 md:py-5 flex items-center justify-between relative overflow-hidden">
           <AmbientParticles color="rgba(255,255,255,0.1)" />
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 md:gap-5 min-w-0">
             <button
-              className="p-3 rounded-2xl border-2 border-slate-200/60 bg-white/90 backdrop-blur-xl hover:bg-slate-50/90 text-slate-700 hover:text-slate-900 hover:border-emerald-300/70 hover:shadow-glow-emerald-lg hover:rotate-180 hover:scale-110 transition-all duration-500 shadow-lg hover:shadow-holo-md transform-3d"
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               aria-label="Toggle sidebar"
             >
-             
+              <span className="relative block h-4 w-5">
+                <span className={`absolute left-0 h-0.5 w-5 bg-current transition-all duration-200 ${sidebarOpen ? 'top-2 rotate-45' : 'top-0'}`} />
+                <span className={`absolute left-0 top-2 h-0.5 w-5 bg-current transition-opacity duration-200 ${sidebarOpen ? 'opacity-0' : 'opacity-100'}`} />
+                <span className={`absolute left-0 h-0.5 w-5 bg-current transition-all duration-200 ${sidebarOpen ? 'top-2 -rotate-45' : 'top-4'}`} />
+              </span>
             </button>
 
-            <div className="relative">
-              <h2 className="font-black text-2xl md:text-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent drop-shadow-2xl max-w-[280px] md:max-w-none">
+            <div className="relative min-w-0">
+              <h2 className="text-xl font-bold text-gray-900 max-w-[220px] md:max-w-none truncate">
                 {selected?.village_name || 'Select Village'}
               </h2>
-              <div className="absolute -bottom-1 left-0 h-1 w-24 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full shadow-glow animate-expand" />
-              <div className="text-sm font-bold text-slate-500 mt-2 flex items-center gap-2">
-                <div className="w-2 h-2 bg-gradient-to-r from-slate-400 to-slate-600 rounded-full shadow-glow animate-pulse" />
-                {TABS.find((t) => t.id === activeTab)?.label}
+              <div className="mt-0.5 text-sm text-gray-600 truncate">
+                {selected ? `${selected.district}, ${selected.state}` : TABS.find((t) => t.id === activeTab)?.label}
               </div>
             </div>
           </div>
 
           <Link
             href="/"
-            className="group relative inline-flex items-center gap-2 text-lg font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-100/60 hover:bg-emerald-200/80 px-5 py-2.5 rounded-2xl backdrop-blur-xl border border-emerald-200/60 shadow-lg hover:shadow-glow-emerald-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 transform-3d"
+            className="group relative inline-flex items-center gap-2 text-sm md:text-lg font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-100/60 hover:bg-emerald-200/80 px-3 md:px-5 py-2 rounded-xl md:rounded-2xl backdrop-blur-xl border border-emerald-200/60 shadow-lg hover:shadow-glow-emerald-xl hover:-translate-y-1 hover:scale-105 transition-all duration-400 transform-3d"
           >
             
             Home
@@ -578,7 +549,7 @@ export default function UltraRealisticDashboard() {
         </header>
 
         {/* Holographic Tab Navigation */}
-        <nav className="sticky top-[88px] z-30 backdrop-blur-3xl bg-white/95 border-b border-slate-200/60 px-6 md:px-10 py-4 flex gap-3 overflow-x-auto shadow-glow-lg relative">
+        <nav className="sticky top-[72px] md:top-[88px] z-30 backdrop-blur-3xl bg-white/95 border-b border-slate-200/60 px-4 md:px-10 py-3 md:py-4 flex gap-2 md:gap-3 overflow-x-auto shadow-glow-lg relative">
           <AmbientParticles color="rgba(255,255,255,0.05)" />
           {TABS.map((tab, idx) => {
             const isActive = activeTab === tab.id;
@@ -586,11 +557,11 @@ export default function UltraRealisticDashboard() {
               <button
                 key={tab.id}
                 className={`
-                  relative overflow-hidden px-7 py-3.5 rounded-3xl text-base font-bold whitespace-nowrap transition-all duration-500 ease-out
-                  backdrop-blur-xl shadow-lg hover:shadow-holo-lg transform-3d
+                  relative overflow-hidden px-4 md:px-7 py-2.5 md:py-3.5 rounded-xl md:rounded-3xl text-sm md:text-base font-bold whitespace-nowrap transition-all duration-300 ease-out
+                  backdrop-blur-xl shadow-sm md:shadow-lg
                   ${isActive 
-                    ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-teal-500/15 text-emerald-800 border-2 border-emerald-300/60 shadow-glow-emerald-xl shadow-emerald-500/25 ring-4 ring-emerald-400/30 scale-105 translate-y-1' 
-                    : 'bg-white/80 border border-slate-200/50 text-slate-700 hover:bg-slate-50/90 hover:text-slate-900 hover:border-emerald-300/50 hover:shadow-glow-emerald-lg hover:scale-105 hover:translate-y-1 hover:rotate-x-5'
+                    ? 'bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-teal-500/15 text-emerald-800 border border-emerald-300/60 md:border-2 md:shadow-glow-emerald-xl md:shadow-emerald-500/25 md:ring-2 md:ring-emerald-400/30 md:scale-105 md:translate-y-1' 
+                    : 'bg-white/80 border border-slate-200/60 text-slate-700 hover:bg-slate-50/90 hover:text-slate-900 hover:border-emerald-300/50 md:hover:shadow-glow-emerald-lg md:hover:scale-105 md:hover:translate-y-1'
                   }
                 `}
                 onClick={() => {
@@ -636,6 +607,91 @@ export default function UltraRealisticDashboard() {
           ) : (
             <>
               <VillageHeader v={selected} />
+
+              {activeTab === 'overview' && (
+                <div className="mt-6 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <HolographicKPICard
+                      label="Total Emissions"
+                      value={totalEm > 0 ? `${(totalEm / 1000).toFixed(1)} t` : '--'}
+                      sub="CO2e per year"
+                      accent="#ef4444"
+                      icon="E"
+                    />
+                    <HolographicKPICard
+                      label="Net After Reduction"
+                      value={netAfter > 0 ? `${(netAfter / 1000).toFixed(1)} t` : '--'}
+                      sub="CO2e per year"
+                      accent="#10b981"
+                      icon="N"
+                    />
+                    <HolographicKPICard
+                      label="Reduction Achieved"
+                      value={pctRed > 0 ? `${pctRed.toFixed(1)}%` : '--'}
+                      sub="from interventions"
+                      accent="#8b5cf6"
+                      icon="R"
+                    />
+                    <HolographicKPICard
+                      label="Intervention Savings"
+                      value={reductionTons > 0 ? `${reductionTons.toFixed(1)} t` : '--'}
+                      sub="annual CO2e reduction"
+                      accent="#3b82f6"
+                      icon="S"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                      <h3 className="text-base font-semibold text-gray-900">Emission Profile</h3>
+                      <p className="text-sm text-gray-600 mt-1">Top sectors by annual emission share</p>
+                      <div className="mt-4 space-y-3">
+                        {emissionBySector.slice(0, 4).map((item) => {
+                          const share = totalEm > 0 ? (item.kg / totalEm) * 100 : 0;
+                          return (
+                            <div key={item.sector} className="group">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-medium text-gray-700">{item.sector}</span>
+                                <span className="text-gray-600">{(item.kg / 1000).toFixed(1)} t</span>
+                              </div>
+                              <div className="mt-1.5 h-2 rounded-full bg-gray-100 overflow-hidden">
+                                <div
+                                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500 group-hover:from-blue-600 group-hover:to-cyan-600"
+                                  style={{ width: `${Math.min(100, share)}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {emissionBySector.length === 0 && <div className="text-sm text-gray-500">No emission data available.</div>}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                      <h3 className="text-base font-semibold text-gray-900">Overview Summary</h3>
+                      <p className="text-sm text-gray-600 mt-1">Quick snapshot for current village</p>
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                          <div className="text-xs text-gray-500">Top Emitting Sector</div>
+                          <div className="text-sm font-semibold text-gray-900 mt-1">{topSector?.sector || '--'}</div>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                          <div className="text-xs text-gray-500">Activities Tracked</div>
+                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.emissions?.length || 0}</div>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                          <div className="text-xs text-gray-500">Interventions</div>
+                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.reductions?.length || 0}</div>
+                        </div>
+                        <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                          <div className="text-xs text-gray-500">Scenario Years</div>
+                          <div className="text-sm font-semibold text-gray-900 mt-1">{dashData?.scenario?.length || 0}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {activeTab === 'emissions' && <EmissionsChart rows={dashData?.emissions} />}
               {activeTab === 'budget' && <CarbonBudgetCard before={dashData?.budgetBefore} after={dashData?.budgetAfter} />}
@@ -693,7 +749,7 @@ export default function UltraRealisticDashboard() {
         .shadow-holo-lg { box-shadow: 0 25px 80px rgba(0,0,0,0.2), 0 0 40px rgba(16,185,129,0.3); }
         .shadow-holo-xl { box-shadow: 0 35px 100px rgba(0,0,0,0.25), 0 0 60px rgba(16,185,129,0.4); }
         .shadow-holo-2xl { box-shadow: 0 50px 150px rgba(0,0,0,0.3), 0 0 80px rgba(16,185,129,0.5); }
-        .shadow-glow { box-shadow: 0 0 12px rgba(16,185,129,0.4); }
+        .shadow-glow { box-shadow: 0 0 12px rgb(57, 5, 82); }
         .shadow-glow-emerald { box-shadow: 0 0 20px rgba(16,185,129,0.3); }
         .shadow-glow-emerald-sm { box-shadow: 0 0 12px rgba(16,185,129,0.2); }
         .shadow-glow-emerald-lg { box-shadow: 0 0 30px rgba(16,185,129,0.4); }
@@ -714,4 +770,3 @@ export default function UltraRealisticDashboard() {
     </div>
   );
 }
-
