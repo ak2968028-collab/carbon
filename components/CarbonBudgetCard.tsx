@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 
 export interface BudgetRow {
   vlcode: string;
@@ -51,6 +51,7 @@ function DonutChart({
 }) {
   const [hov, setHov] = useState<number | null>(null);
   const [anim, setAnim] = useState(0);
+  const chartId = useId().replace(/:/g, '');
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -101,13 +102,13 @@ function DonutChart({
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
         <defs>
           {slices.map((sl, i) => (
-            <radialGradient key={i} id={`g${i}`} cx="40%" cy="35%" r="70%">
+            <radialGradient key={i} id={`${chartId}-g${i}`} cx="40%" cy="35%" r="70%">
               <stop offset="0%" stopColor={sl.color} stopOpacity="0.75" />
               <stop offset="45%" stopColor={sl.color} stopOpacity="1" />
               <stop offset="100%" stopColor={sl.dark} stopOpacity="1" />
             </radialGradient>
           ))}
-          <radialGradient id="hole" cx="50%" cy="45%" r="65%">
+          <radialGradient id={`${chartId}-hole`} cx="50%" cy="45%" r="65%">
             <stop offset="0%" stopColor="#e2e8f0" />
             <stop offset="100%" stopColor="#cbd5e1" />
           </radialGradient>
@@ -131,7 +132,7 @@ function DonutChart({
             >
               <path
                 d={donutPath(cx, cy, outerR, innerR, start, end)}
-                fill={`url(#g${i})`}
+                fill={`url(#${chartId}-g${i})`}
                 opacity={!hov || isH ? 1 : 0.38}
                 stroke="#fff"
                 strokeWidth="0.6"
@@ -142,7 +143,7 @@ function DonutChart({
         })}
 
         {/* Center hole */}
-        <circle cx={cx} cy={cy} r={innerR} fill="url(#hole)" />
+        <circle cx={cx} cy={cy} r={innerR} fill={`url(#${chartId}-hole)`} />
 
         {/* Center text */}
         {hov !== null && slices[hov] ? (
@@ -393,4 +394,3 @@ export default function CarbonBudgetCard({ before, after }: { before: BudgetRow[
     </div>
   );
 }
-
